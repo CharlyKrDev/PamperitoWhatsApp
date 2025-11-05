@@ -1,0 +1,10 @@
+PamperitoWhatsApp/node_modules
+PamperitoWhatsApp/.env
+node_modules
+.env
+@"
+# MT5 / backtesting cache
+History/
+*.sqlite
+*.hst
+"@ | Out-File -Encoding ascii -Append .gitignore
