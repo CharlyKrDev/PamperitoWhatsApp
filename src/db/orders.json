@@ -1,0 +1,198 @@
+[
+  {
+    "id": "PAM-1762681606159",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_dura",
+          "qty": 2
+        }
+      ],
+      "zone": "centro"
+    },
+    "total": 13500,
+    "status": "PENDING"
+  },
+  {
+    "id": "PAM-1762681614412",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_dura",
+          "qty": 2
+        }
+      ],
+      "zone": "centro"
+    },
+    "total": 13500,
+    "status": "PENDING"
+  },
+  {
+    "id": "PAM-1762681628564",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_dura",
+          "qty": 2
+        }
+      ],
+      "zone": "centro"
+    },
+    "total": 13500,
+    "status": "PENDING"
+  },
+  {
+    "id": "PAM-1762681717678",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_dura",
+          "qty": 2
+        }
+      ],
+      "zone": "centro"
+    },
+    "total": 13500,
+    "status": "PENDING"
+  },
+  {
+    "id": "PAM-1762681911846",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_dura",
+          "qty": 2
+        }
+      ],
+      "zone": "centro"
+    },
+    "total": 13500,
+    "status": "PENDING"
+  },
+  {
+    "id": "PAM-1762681915273",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_dura",
+          "qty": 2
+        }
+      ],
+      "zone": "centro"
+    },
+    "total": 13500,
+    "status": "PENDING"
+  },
+  {
+    "id": "PAM-1762681928181",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_dura",
+          "qty": 2
+        }
+      ],
+      "zone": "centro"
+    },
+    "total": 13500,
+    "status": "PENDING"
+  },
+  {
+    "id": "PAM-1762682098275",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_dura",
+          "qty": 2
+        }
+      ],
+      "zone": "centro"
+    },
+    "total": 13500,
+    "status": "PENDING"
+  },
+  {
+    "id": "PAM-1762682114807",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_dura",
+          "qty": 2
+        }
+      ],
+      "zone": "centro"
+    },
+    "total": 13500,
+    "status": "PENDING"
+  },
+  {
+    "id": "PAM-1762682145564",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_dura",
+          "qty": 2
+        }
+      ],
+      "zone": "centro"
+    },
+    "total": 13500,
+    "status": "PENDING"
+  },
+  {
+    "id": "PAM-1762684439245",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_dura",
+          "qty": 2
+        }
+      ],
+      "zone": "centro"
+    },
+    "total": 13500,
+    "status": "PENDING"
+  },
+  {
+    "id": "PAM-1762686103029",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_dura",
+          "qty": 2
+        }
+      ],
+      "zone": "centro"
+    },
+    "total": 13500,
+    "status": "PENDING"
+  },
+  {
+    "id": "PAM-1762696154030",
+    "createdAt": "2025-11-09T13:49:14.030Z",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon",
+          "qty": 3
+        }
+      ],
+      "zone": "norte"
+    },
+    "total": 15500,
+    "status": "PENDING"
+  }
+]

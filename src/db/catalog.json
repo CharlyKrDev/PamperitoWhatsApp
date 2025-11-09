@@ -1,0 +1,5 @@
+[
+  { "id": "lenia_dura",   "name": "Leña dura",   "price": 6000, "unit": "bolsa" },
+  { "id": "lenia_blanda", "name": "Leña blanda", "price": 5000, "unit": "bolsa" },
+  { "id": "carbon",       "name": "Carbón",      "price": 4500, "unit": "bolsa" }
+]

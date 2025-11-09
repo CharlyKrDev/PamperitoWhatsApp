@@ -1,20 +1,21 @@
 import express from "express";
-import bodyParser from "body-parser";
 import cors from "cors";
-import dotenv from "dotenv";
+import bodyParser from "body-parser";
+import whatsappRouter from "./modules/whatsApp/routes/whatsapp.routes.js";
+import mpRouter from "./modules/mercadoPago/routes/mp.routes.js";
 
-import whatsappRouter from "./routes/whatsapp.router.js";
-import mpRouter from "./routes/mp.router.js";
 
-dotenv.config();
+
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use("/webhook/whatsapp", whatsappRouter);
-app.use("/webhook/mp", mpRouter);
+// Health
+app.get("/", (_req, res) => res.send("🔥 Pamperito Bot corriendo OK"));
 
-app.get("/", (req, res) => res.send("🔥 Pamperito Bot corriendo OK"));
+// Webhooks
+app.use("/", whatsappRouter);
+app.use("/", mpRouter);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor escuchando en puerto ${PORT}`));
+export default app;
