@@ -9,4 +9,3 @@ if (missing.length) {
   process.exit(1);
 }
 console.log("✅ Health OK. Entorno listo.");
-git 
