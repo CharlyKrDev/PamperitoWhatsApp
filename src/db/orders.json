@@ -62,5 +62,694 @@
       "zone": "norte"
     },
     "total": 8000
+  },
+  {
+    "id": "PAM-1763214232012",
+    "createdAt": "2025-11-15T13:43:52.012Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_10kg",
+          "quantity": 20,
+          "label": "Leña x10kg"
+        }
+      ]
+    },
+    "total": 80000
+  },
+  {
+    "id": "PAM-1763214552319",
+    "createdAt": "2025-11-15T13:49:12.319Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña x20kg",
+          "quantity": 20,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 140000
+  },
+  {
+    "id": "PAM-1763215302666",
+    "createdAt": "2025-11-15T14:01:42.666Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña x20kg",
+          "quantity": 2,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 20000
+  },
+  {
+    "id": "PAM-1763215642789",
+    "createdAt": "2025-11-15T14:07:22.789Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_10kg",
+          "label": "Leña x10kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 30000
+  },
+  {
+    "id": "PAM-1763216503296",
+    "createdAt": "2025-11-15T14:21:43.296Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 4,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 24000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763216534677",
+    "createdAt": "2025-11-15T14:22:14.677Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_3kg",
+          "label": "Carbón - bolsa 3kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 15000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763216570768",
+    "createdAt": "2025-11-15T14:22:50.768Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "pack_alamo",
+          "label": "Pack Álamo x unidad",
+          "quantity": 10,
+          "unit": "unidad"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 13000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763216693554",
+    "createdAt": "2025-11-15T14:24:53.554Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 4,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 24000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763216722442",
+    "createdAt": "2025-11-15T14:25:22.442Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "pastilla_encendido",
+          "label": "Pastilla de encendido x unidad",
+          "quantity": 5,
+          "unit": "unidad"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 750
+  },
+  {
+    "id": "PAM-1763216826910",
+    "createdAt": "2025-11-15T14:27:06.910Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña - bolsa 20kg",
+          "quantity": 4,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 40000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763218432320",
+    "createdAt": "2025-11-15T14:53:52.320Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 2,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 12000
+  },
+  {
+    "id": "PAM-1763219512515",
+    "createdAt": "2025-11-15T15:11:52.516Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        },
+        {
+          "id": "pastilla_encendido",
+          "label": "Pastilla de encendido x unidad",
+          "quantity": 10,
+          "unit": "unidad"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 31300,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763219643121",
+    "createdAt": "2025-11-15T15:14:03.121Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_3kg",
+          "label": "Carbón - bolsa 3kg",
+          "quantity": 6,
+          "unit": "bolsa"
+        },
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 1,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 24000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763219703143",
+    "createdAt": "2025-11-15T15:15:03.143Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_3kg",
+          "label": "Carbón - bolsa 3kg",
+          "quantity": 6,
+          "unit": "bolsa"
+        },
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 1,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 24000,
+    "meta": {
+      "source": "repeat_last",
+      "baseOrderId": "PAM-1763219643121"
+    }
+  },
+  {
+    "id": "PAM-1763220277314",
+    "createdAt": "2025-11-15T15:24:37.314Z",
+    "status": "PENDING",
+    "from": "393513911053",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña - bolsa 20kg",
+          "quantity": 10,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 90000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763220735307",
+    "createdAt": "2025-11-15T15:32:15.307Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_3kg",
+          "label": "Carbón - bolsa 3kg",
+          "quantity": 6,
+          "unit": "bolsa"
+        },
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 1,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto"
+    },
+    "total": 24000,
+    "meta": {
+      "source": "repeat_last",
+      "baseOrderId": "PAM-1763219703143",
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763229661968",
+    "createdAt": "2025-11-15T18:01:01.969Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 3,
+          "unit": "bolsa"
+        },
+        {
+          "id": "pastilla_encendido",
+          "label": "Pastilla de encendido x unidad",
+          "quantity": 1,
+          "unit": "unidad"
+        }
+      ],
+      "zone": "venado_tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_other",
+        "dayLabel": "Otro día / a coordinar",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 18150,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763229866207",
+    "createdAt": "2025-11-15T18:04:26.207Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 10,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto",
+      "address": "Dorrego 201",
+      "delivery": {
+        "day": "day_tomorrow",
+        "dayLabel": "Mañana",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 50000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763231728768",
+    "createdAt": "2025-11-15T18:35:28.769Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 10,
+          "unit": "bolsa"
+        },
+        {
+          "id": "pack_alamo",
+          "label": "Pack Álamo x unidad",
+          "quantity": 2,
+          "unit": "unidad"
+        }
+      ],
+      "zone": "venado_tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_flexible",
+        "dayLabel": "Próximos días (flexible)",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 53000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763233569914",
+    "createdAt": "2025-11-15T19:06:09.914Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña - bolsa 20kg",
+          "quantity": 4,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_tomorrow",
+        "dayLabel": "Mañana (16/11)",
+        "slot": "slot_late",
+        "slotLabel": "16:00 a 18:00 hs"
+      }
+    },
+    "total": 40000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763233715838",
+    "createdAt": "2025-11-15T19:08:35.838Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña - bolsa 20kg",
+          "quantity": 4,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "venado_tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_today",
+        "dayLabel": "Hoy (15/11)",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 40000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763235552676",
+    "createdAt": "2025-11-15T19:39:12.676Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_4kg",
+          "label": "Carbón - bolsa 4kg",
+          "quantity": 10,
+          "unit": "bolsa"
+        },
+        {
+          "id": "pack_alamo",
+          "label": "Pack Álamo x unidad",
+          "quantity": 3,
+          "unit": "unidad"
+        },
+        {
+          "id": "pastilla_encendido",
+          "label": "Pastilla de encendido x unidad",
+          "quantity": 10,
+          "unit": "unidad"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_tomorrow",
+        "dayLabel": "Mañana (16/11)",
+        "slot": "slot_late",
+        "slotLabel": "16:00 a 18:00 hs"
+      }
+    },
+    "total": 42800,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763236174255",
+    "createdAt": "2025-11-15T19:49:34.255Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_4kg",
+          "label": "Carbón - bolsa 4kg",
+          "quantity": 10,
+          "unit": "bolsa"
+        },
+        {
+          "id": "pack_alamo",
+          "label": "Pack Álamo x unidad",
+          "quantity": 3,
+          "unit": "unidad"
+        },
+        {
+          "id": "pastilla_encendido",
+          "label": "Pastilla de encendido x unidad",
+          "quantity": 10,
+          "unit": "unidad"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_today",
+        "dayLabel": "Hoy (15/11)",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 42800,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763238059854",
+    "createdAt": "2025-11-15T20:20:59.854Z",
+    "status": "PENDING",
+    "from": "393513911053",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña - bolsa 20kg",
+          "quantity": 2,
+          "unit": "bolsa"
+        },
+        {
+          "id": "pack_alamo",
+          "label": "Pack Álamo x unidad",
+          "quantity": 1,
+          "unit": "unidad"
+        },
+        {
+          "id": "pastilla_encendido",
+          "label": "Pastilla de encendido x unidad",
+          "quantity": 2,
+          "unit": "unidad"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Garibaldi 535",
+      "delivery": {
+        "day": "day_tomorrow",
+        "dayLabel": "Mañana (16/11)",
+        "slot": "slot_late",
+        "slotLabel": "16:00 a 18:00 hs"
+      }
+    },
+    "total": 21800,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763238161751",
+    "createdAt": "2025-11-15T20:22:41.751Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_4kg",
+          "label": "Carbón - bolsa 4kg",
+          "quantity": 10,
+          "unit": "bolsa"
+        },
+        {
+          "id": "pack_alamo",
+          "label": "Pack Álamo x unidad",
+          "quantity": 3,
+          "unit": "unidad"
+        },
+        {
+          "id": "pastilla_encendido",
+          "label": "Pastilla de encendido x unidad",
+          "quantity": 10,
+          "unit": "unidad"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_today",
+        "dayLabel": "Hoy (15/11)",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 42800,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763238350255",
+    "createdAt": "2025-11-15T20:25:50.255Z",
+    "status": "PENDING",
+    "from": "393513911053",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_10kg",
+          "label": "Carbón - bolsa 10kg",
+          "quantity": 1,
+          "unit": "bolsa"
+        },
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 2,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorreho 460",
+      "delivery": {
+        "day": "day_tomorrow",
+        "dayLabel": "Mañana (16/11)",
+        "slot": "slot_late",
+        "slotLabel": "16:00 a 18:00 hs"
+      }
+    },
+    "total": 22000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
   }
 ]
