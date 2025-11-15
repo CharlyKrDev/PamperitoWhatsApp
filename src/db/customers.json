@@ -1,0 +1,20 @@
+[
+  {
+    "phone": "393514049231",
+    "name": "Jose",
+    "address": null,
+    "zone": null,
+    "lastOrderId": "PAM-1763157704779",
+    "createdAt": "2025-11-14T22:01:29.094Z",
+    "updatedAt": "2025-11-14T22:01:44.784Z"
+  },
+  {
+    "phone": "393513911053",
+    "name": "Maeina",
+    "address": null,
+    "zone": null,
+    "lastOrderId": null,
+    "createdAt": "2025-11-14T22:08:07.263Z",
+    "updatedAt": "2025-11-14T22:08:07.263Z"
+  }
+]

@@ -1,198 +1,66 @@
 [
   {
-    "id": "PAM-1762681606159",
+    "id": "PAM-1763155712540",
+    "createdAt": "2025-11-14T21:28:32.540Z",
+    "status": "PENDING",
     "from": "393514049231",
     "parsed": {
       "items": [
         {
           "id": "lenia_dura",
-          "qty": 2
+          "qty": 1
         }
       ],
-      "zone": "centro"
+      "zone": "norte"
     },
-    "total": 13500,
-    "status": "PENDING"
+    "total": 8000
   },
   {
-    "id": "PAM-1762681614412",
+    "id": "PAM-1763156343557",
+    "createdAt": "2025-11-14T21:39:03.557Z",
+    "status": "PENDING",
     "from": "393514049231",
     "parsed": {
       "items": [
         {
           "id": "lenia_dura",
-          "qty": 2
+          "qty": 1
         }
       ],
-      "zone": "centro"
+      "zone": "norte"
     },
-    "total": 13500,
-    "status": "PENDING"
+    "total": 8000
   },
   {
-    "id": "PAM-1762681628564",
-    "from": "393514049231",
-    "parsed": {
-      "items": [
-        {
-          "id": "lenia_dura",
-          "qty": 2
-        }
-      ],
-      "zone": "centro"
-    },
-    "total": 13500,
-    "status": "PENDING"
-  },
-  {
-    "id": "PAM-1762681717678",
-    "from": "393514049231",
-    "parsed": {
-      "items": [
-        {
-          "id": "lenia_dura",
-          "qty": 2
-        }
-      ],
-      "zone": "centro"
-    },
-    "total": 13500,
-    "status": "PENDING"
-  },
-  {
-    "id": "PAM-1762681911846",
-    "from": "393514049231",
-    "parsed": {
-      "items": [
-        {
-          "id": "lenia_dura",
-          "qty": 2
-        }
-      ],
-      "zone": "centro"
-    },
-    "total": 13500,
-    "status": "PENDING"
-  },
-  {
-    "id": "PAM-1762681915273",
-    "from": "393514049231",
-    "parsed": {
-      "items": [
-        {
-          "id": "lenia_dura",
-          "qty": 2
-        }
-      ],
-      "zone": "centro"
-    },
-    "total": 13500,
-    "status": "PENDING"
-  },
-  {
-    "id": "PAM-1762681928181",
-    "from": "393514049231",
-    "parsed": {
-      "items": [
-        {
-          "id": "lenia_dura",
-          "qty": 2
-        }
-      ],
-      "zone": "centro"
-    },
-    "total": 13500,
-    "status": "PENDING"
-  },
-  {
-    "id": "PAM-1762682098275",
-    "from": "393514049231",
-    "parsed": {
-      "items": [
-        {
-          "id": "lenia_dura",
-          "qty": 2
-        }
-      ],
-      "zone": "centro"
-    },
-    "total": 13500,
-    "status": "PENDING"
-  },
-  {
-    "id": "PAM-1762682114807",
-    "from": "393514049231",
-    "parsed": {
-      "items": [
-        {
-          "id": "lenia_dura",
-          "qty": 2
-        }
-      ],
-      "zone": "centro"
-    },
-    "total": 13500,
-    "status": "PENDING"
-  },
-  {
-    "id": "PAM-1762682145564",
-    "from": "393514049231",
-    "parsed": {
-      "items": [
-        {
-          "id": "lenia_dura",
-          "qty": 2
-        }
-      ],
-      "zone": "centro"
-    },
-    "total": 13500,
-    "status": "PENDING"
-  },
-  {
-    "id": "PAM-1762684439245",
-    "from": "393514049231",
-    "parsed": {
-      "items": [
-        {
-          "id": "lenia_dura",
-          "qty": 2
-        }
-      ],
-      "zone": "centro"
-    },
-    "total": 13500,
-    "status": "PENDING"
-  },
-  {
-    "id": "PAM-1762686103029",
-    "from": "393514049231",
-    "parsed": {
-      "items": [
-        {
-          "id": "lenia_dura",
-          "qty": 2
-        }
-      ],
-      "zone": "centro"
-    },
-    "total": 13500,
-    "status": "PENDING"
-  },
-  {
-    "id": "PAM-1762696154030",
-    "createdAt": "2025-11-09T13:49:14.030Z",
+    "id": "PAM-1763157376389",
+    "createdAt": "2025-11-14T21:56:16.389Z",
+    "status": "PENDING",
     "from": "393514049231",
     "parsed": {
       "items": [
         {
           "id": "carbon",
-          "qty": 3
+          "qty": 1
         }
       ],
       "zone": "norte"
     },
-    "total": 15500,
-    "status": "PENDING"
+    "total": 6500
+  },
+  {
+    "id": "PAM-1763157704779",
+    "createdAt": "2025-11-14T22:01:44.779Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_dura",
+          "qty": 1
+        }
+      ],
+      "zone": "norte"
+    },
+    "total": 8000
   }
 ]

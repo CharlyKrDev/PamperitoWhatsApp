@@ -1,60 +1,133 @@
 // src/modules/mercadoPago/services/mp.api.js
-import "dotenv/config";
+import fs from "fs/promises";
+import path from "path";
 import axios from "axios";
-import fs from "fs";
+import dotenv from "dotenv";
 
-const ORDERS_FILE = "src/db/orders.json";
+dotenv.config();
 
-function ensureFile() {
-  if (!fs.existsSync(ORDERS_FILE)) fs.writeFileSync(ORDERS_FILE, "[]");
-}
-function readOrders() {
-  ensureFile();
-  return JSON.parse(fs.readFileSync(ORDERS_FILE, "utf8"));
-}
-function writeOrders(arr) {
-  fs.writeFileSync(ORDERS_FILE, JSON.stringify(arr, null, 2));
-}
+const ORDERS_FILE = path.resolve("src/db/orders.json");
+const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || null;
 
-export function persistOrder(order) {
-  const orders = readOrders();
-  const id = `PAM-${Date.now()}`;
-  const saved = { id, createdAt: new Date().toISOString(), ...order };
-  orders.push(saved);
-  writeOrders(orders);
-  return saved;
-}
-
-export function markPaid(orderId) {
-  const orders = readOrders();
-  const idx = orders.findIndex(o => o.id === orderId);
-  if (idx >= 0) {
-    orders[idx].status = "PAID";
-    orders[idx].paidAt = new Date().toISOString();
-    writeOrders(orders);
-    return orders[idx];
+// --------- helpers de archivo ---------
+async function ensureOrdersFile() {
+  try {
+    await fs.access(ORDERS_FILE);
+  } catch {
+    await fs.mkdir(path.dirname(ORDERS_FILE), { recursive: true });
+    await fs.writeFile(ORDERS_FILE, "[]", "utf8");
   }
-  return null;
 }
 
-export async function createPreference(orderId, total) {
-  const token = process.env.MP_ACCESS_TOKEN;
-  if (!token) {
-    console.warn("⚠️ MP_ACCESS_TOKEN ausente: usando MODO DEMO (sin link real).");
-    return null; // <- Modo demo
+async function readOrders() {
+  await ensureOrdersFile();
+  const raw = await fs.readFile(ORDERS_FILE, "utf8").catch(() => "[]");
+  try {
+    return JSON.parse(raw || "[]");
+  } catch {
+    // si se rompe el JSON, lo reiniciamos
+    return [];
   }
+}
 
-  const pref = {
-    items: [{ title: `Pedido ${orderId}`, quantity: 1, unit_price: Number(total) }],
-    external_reference: orderId,
-    notification_url: process.env.MP_WEBHOOK_URL, // tu ngrok /webhook/mp
+async function writeOrders(orders) {
+  await ensureOrdersFile();
+  await fs.writeFile(ORDERS_FILE, JSON.stringify(orders, null, 2), "utf8");
+}
+
+// --------- API pública ---------
+
+// Guarda una nueva orden y devuelve la orden completa (con id)
+export async function persistOrder(order) {
+  const orders = await readOrders();
+
+  const newOrder = {
+    id: `PAM-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    status: order.status || "PENDING",
+    ...order,
   };
 
-  const { data } = await axios.post(
-    "https://api.mercadopago.com/checkout/preferences",
-    pref,
-    { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } }
-  );
+  orders.push(newOrder);
+  await writeOrders(orders);
+  return newOrder;
+}
 
-  return data.init_point || data.sandbox_init_point;
+// Marca una orden como pagada, devuelve la orden actualizada o null si no existe
+export async function markPaid(orderId) {
+  const orders = await readOrders();
+  const idx = orders.findIndex((o) => o.id === orderId);
+  if (idx === -1) return null;
+
+  const updated = {
+    ...orders[idx],
+    status: "PAID",
+    paidAt: new Date().toISOString(),
+  };
+
+  orders[idx] = updated;
+  await writeOrders(orders);
+  return updated;
+}
+
+// ✅ NUEVO: obtiene la última orden de un número de WhatsApp
+export async function getLastOrderByPhone(phone) {
+  if (!phone) return null;
+  const orders = await readOrders();
+
+  const fromSamePhone = orders.filter((o) => o.from === phone);
+  if (!fromSamePhone.length) return null;
+
+  // Ordenamos por createdAt descendente (la más nueva primero)
+  fromSamePhone.sort((a, b) => {
+    const da = new Date(a.createdAt || 0).getTime();
+    const db = new Date(b.createdAt || 0).getTime();
+    return db - da;
+  });
+
+  return fromSamePhone[0];
+}
+
+// Crea una preferencia de pago en MP y devuelve el link (o null si no hay token)
+export async function createPreference(orderId, total) {
+  if (!MP_ACCESS_TOKEN) {
+    console.warn(
+      "[MercadoPago] MP_ACCESS_TOKEN no configurado. Modo demo, no se crea preferencia real."
+    );
+    return null;
+  }
+
+  const url = "https://api.mercadopago.com/checkout/preferences";
+
+  const body = {
+    items: [
+      {
+        title: `Pedido ${orderId}`,
+        quantity: 1,
+        currency_id: "ARS",
+        unit_price: Number(total) || 0,
+      },
+    ],
+    external_reference: orderId,
+  };
+
+  try {
+    const resp = await axios.post(url, body, {
+      headers: {
+        Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const pref = resp.data;
+    // intentamos devolver un link válido
+    return (
+      pref.init_point ||
+      pref.sandbox_init_point ||
+      null
+    );
+  } catch (err) {
+    console.error("[MercadoPago] Error creando preferencia:", err.message);
+    return null;
+  }
 }

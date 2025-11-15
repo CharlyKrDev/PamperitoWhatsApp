@@ -1,64 +1,71 @@
 // src/modules/whatsApp/services/whatsapp.api.js
-import "dotenv/config";
 import axios from "axios";
+import dotenv from "dotenv";
 
-const GRAPH_BASE = process.env.META_GRAPH_BASE;
-const VERSION   = process.env.META_GRAPH_VERSION;
-const PHONE_ID  = process.env.WHATSAPP_PHONE_ID;
-const TOKEN     = process.env.WHATSAPP_TOKEN;
+dotenv.config();
 
-// 🔍 Validación temprana de entorno
-(function validateEnv() {
-  const missing = [];
-  if (!GRAPH_BASE) missing.push("META_GRAPH_BASE");
-  if (!VERSION)    missing.push("META_GRAPH_VERSION");
-  if (!PHONE_ID)   missing.push("WHATSAPP_PHONE_ID");
-  if (!TOKEN)      missing.push("WHATSAPP_TOKEN");
-  if (missing.length) {
-    console.error("❌ Faltan variables de entorno para WhatsApp Cloud API:", missing);
-    throw new Error("Configuración incompleta de WhatsApp API (.env)");
-  }
-})();
+const META_GRAPH_BASE = process.env.META_GRAPH_BASE || "https://graph.facebook.com";
+const META_GRAPH_VERSION = process.env.META_GRAPH_VERSION || "v19.0";
+const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
+const WHATSAPP_PHONE_ID = process.env.WHATSAPP_PHONE_ID;
 
-function waUrl(path = "messages") {
-  return `${GRAPH_BASE}/${VERSION}/${PHONE_ID}/${path}`;
+if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_ID) {
+  console.warn(
+    "[WhatsApp] Falta WHATSAPP_TOKEN o WHATSAPP_PHONE_ID. Las llamadas a la API van a fallar."
+  );
+}
+
+function waUrl(path) {
+  return `${META_GRAPH_BASE}/${META_GRAPH_VERSION}/${WHATSAPP_PHONE_ID}/${path}`;
 }
 
 async function callWhatsApp(payload) {
-  const url = waUrl("messages");
+  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_ID) {
+    console.warn("[WhatsApp] Config incompleta, no se envía mensaje:", payload);
+    return;
+  }
+
   try {
-    const { data } = await axios.post(url, payload, {
+    const url = waUrl("messages");
+    const res = await axios.post(url, payload, {
       headers: {
-        Authorization: `Bearer ${TOKEN}`,
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
         "Content-Type": "application/json",
       },
     });
-    console.log(`📤 Enviado a ${payload?.to} | tipo: ${payload?.type}`);
-    return data;
+    return res.data;
   } catch (err) {
-    const e = err?.response?.data || err;
-    // Mensaje claro si el token expiró
-    if (e?.error?.code === 190) {
-      console.error("🔑 Token vencido. Generá uno nuevo en Meta y actualizá WHATSAPP_TOKEN en .env");
+    const code = err?.response?.data?.error?.code;
+    const subcode = err?.response?.data?.error?.error_subcode;
+
+    if (code === 190) {
+      console.error("[WhatsApp] Token inválido o vencido (code 190).");
+    } else if (code === 200 && subcode === 2534028) {
+      console.error(
+        "[WhatsApp] Mensaje bloqueado por políticas (PolicyAgent). Revisar contenido/previews."
+      );
+    } else {
+      console.error("[WhatsApp] Error llamando a la API:", err.response?.data || err.message);
     }
-    // Si PolicyAgent bloquea por preview/link u otra policy
-    if (e?.error?.code === 200 && e?.error?.error_subcode === 2534028) {
-      console.error("🛡️ PolicyAgent bloqueó el mensaje. Evitá previews de URL o revisá el contenido.");
-    }
-    console.error("❌ Error enviando mensaje:", e);
-    throw err;
   }
 }
 
+// Texto simple
 export async function sendTextMessage(to, body) {
-  return callWhatsApp({
+  const payload = {
     messaging_product: "whatsapp",
     to,
     type: "text",
-    text: { body, preview_url: false }, // evita preview de links
-  });
+    text: {
+      body,
+      preview_url: false,
+    },
+  };
+
+  return callWhatsApp(payload);
 }
 
+// Menú principal con 3 botones (pedido / precios / zonas)
 export async function sendButtons(to) {
   const payload = {
     messaging_product: "whatsapp",
@@ -66,25 +73,83 @@ export async function sendButtons(to) {
     type: "interactive",
     interactive: {
       type: "button",
-      body: { text: "¿Qué querés hacer? 👇" },
+      body: {
+        text: "Elegí una opción 👇",
+      },
       action: {
         buttons: [
-          { type: "reply", reply: { id: "make_order", title: "🪵 Hacer pedido" } },
-          { type: "reply", reply: { id: "prices",     title: "💰 Ver precios" } },
-          { type: "reply", reply: { id: "zones",      title: "🚚 Zonas de envío" } }
-        ]
-      }
-    }
+          {
+            type: "reply",
+            reply: {
+              id: "make_order",
+              title: "🧺 Hacer pedido",
+            },
+          },
+          {
+            type: "reply",
+            reply: {
+              id: "prices",
+              title: "💸 Ver precios",
+            },
+          },
+          {
+            type: "reply",
+            reply: {
+              id: "zones",
+              title: "🚚 Zonas de envío",
+            },
+          },
+        ],
+      },
+    },
   };
+
   return callWhatsApp(payload);
 }
 
+// Link de pago (o modo demo si no hay link)
 export async function sendOrderLink(to, link, orderId) {
-  // Soporta modo MOCK (link nulo cuando no hay MP)
-  const msg = link
-    ? `🧾 Pedido #${orderId}\nPagá acá para confirmar 👉 ${link}\n` +
-      `Una vez acreditado te confirmamos la franja de entrega. 🔥`
-    : `🧾 Pedido #${orderId}\n(🧪 Modo demo) El link de pago no está habilitado.\n` +
-      `Podés simular confirmación enviando "pago ok ${orderId}" o vía /webhook/mp.`;
-  return sendTextMessage(to, msg);
+  if (!link) {
+    const body =
+      `Tu pedido ${orderId} quedó registrado ✅.\n\n` +
+      `Por ahora estamos en modo demo: avisale al vendedor que el pago está hecho ` +
+      `escribiendo algo como:\n\n*pago ok ${orderId}*`;
+    return sendTextMessage(to, body);
+  }
+
+  const body =
+    `Para pagar tu pedido ${orderId} usá este enlace:\n\n${link}\n\n` +
+    `Una vez aprobado el pago coordinamos la entrega 🔥`;
+
+  return sendTextMessage(to, body);
+}
+
+// 🆕 Botón "Repetir último pedido"
+export async function sendRepeatButton(to, summary) {
+  const payload = {
+    messaging_product: "whatsapp",
+    to,
+    type: "interactive",
+    interactive: {
+      type: "button",
+      body: {
+        text:
+          `La última vez pediste:\n${summary}\n\n` +
+          `¿Querés repetir ese pedido?`,
+      },
+      action: {
+        buttons: [
+          {
+            type: "reply",
+            reply: {
+              id: "repeat_last",
+              title: "🔁 Repetir pedido",
+            },
+          },
+        ],
+      },
+    },
+  };
+
+  return callWhatsApp(payload);
 }
