@@ -110,7 +110,6 @@ export async function createPreference(orderId, total) {
     ],
     external_reference: orderId,
     metadata: { orderId },
-    // importante para el webhook en modo test
     notification_url: MP_WEBHOOK_URL || undefined,
   };
 
@@ -123,7 +122,6 @@ export async function createPreference(orderId, total) {
     });
 
     const pref = resp.data;
-    // en modo test suele venir sandbox_init_point
     return pref.init_point || pref.sandbox_init_point || null;
   } catch (err) {
     console.error(

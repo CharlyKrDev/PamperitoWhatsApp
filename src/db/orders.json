@@ -1206,5 +1206,90 @@
     "meta": {
       "paymentMethod": "PENDING"
     }
+  },
+  {
+    "id": "PAM-1763315860188",
+    "createdAt": "2025-11-16T17:57:40.189Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña - bolsa 20kg",
+          "quantity": 10,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_tomorrow",
+        "dayLabel": "Mañana (17/11)",
+        "slot": "slot_morning",
+        "slotLabel": "08:00 a 12:00 hs"
+      }
+    },
+    "total": 90000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763316066835",
+    "createdAt": "2025-11-16T18:01:06.835Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_flexible",
+        "dayLabel": "Próximos días (flexible)",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 30000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763317622142",
+    "createdAt": "2025-11-16T18:27:02.142Z",
+    "status": "PAID",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego",
+      "delivery": {
+        "day": "day_flexible",
+        "dayLabel": "Próximos días (flexible)",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 30000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    },
+    "paidAt": "2025-11-16T18:27:42.437Z"
   }
 ]

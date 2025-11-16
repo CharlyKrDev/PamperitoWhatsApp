@@ -190,7 +190,7 @@ async function handleRepeatOrder(from) {
 
   await sendTextMessage(
     from,
-    `Perfecto, repetimos tu último pedido con precios actualizados:\n\n${summaryText}\n\nAntes de confirmar, necesito la dirección de entrega 📍.\n\nEscribí la dirección completa (calle, número, barrio si aplica).`
+    `Perfecto, repetimos tu último pedido con precios actualizados:\n\n${summaryText}\n\nAntes de confirmar, necesito la dirección de entrega 📍.\n\nEscribí la dirección completa (calle, número, barrio si aplica).\n\nSi querés cancelar y volver al inicio, escribí *cancelar*.`
   );
 
   sessionState.set(from, {
@@ -248,6 +248,18 @@ export async function receiveWebhook(req, res) {
 
     const lower = text.toLowerCase();
     const state = sessionState.get(from);
+
+    // === COMANDO GLOBAL: CANCELAR ===
+    if (lower === "cancelar" || lower === "cancelar pedido") {
+      sessionState.delete(from);
+
+      await sendTextMessage(
+        from,
+        "Listo, cancelé el pedido en curso 🙂. Volvemos al menú principal."
+      );
+      await sendButtons(from);
+      return res.sendStatus(200);
+    }
 
     // -------- A) Flujo de captura de NOMBRE (cliente nuevo) --------
     if (state?.step === "ASK_NAME") {
@@ -668,7 +680,7 @@ export async function receiveWebhook(req, res) {
 
       await sendTextMessage(
         from,
-        "Perfecto, empecemos por el producto 🔥. Elegí qué querés pedir:"
+        "Perfecto, empecemos por el producto 🔥. Elegí qué querés pedir:\n\nSi en algún momento querés volver al inicio, escribí *cancelar*."
       );
       await sendProductMenu(from);
       return res.sendStatus(200);
@@ -726,7 +738,7 @@ export async function receiveWebhook(req, res) {
         from,
         parsed: st.lastParsed,
         total: st.lastTotal,
-        meta: { paymentMethod: "MercadoPago" },
+        meta: { paymentMethod: "MercadoPago (PENDIENTE)" },
       };
       await notifyAdminNewOrder(orderForAdmin, customer);
 
@@ -762,7 +774,7 @@ export async function receiveWebhook(req, res) {
         from,
         parsed: st.lastParsed,
         total: st.lastTotal,
-        meta: { paymentMethod: "Efectivo" },
+        meta: { paymentMethod: "Efectivo (AL ENTREGAR)" },
       };
       await notifyAdminNewOrder(orderForAdmin, customer);
 

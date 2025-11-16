@@ -2,9 +2,10 @@
 import "dotenv/config";
 import axios from "axios";
 import { markPaid } from "../services/mp.api.js";
-import { sendTextMessage } from "../../whatsApp/services/whatsApp.api.js";
+import { sendTextMessage } from "../../whatsApp/services/whatsapp.api.js";
 
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || null;
+const ADMIN_PHONE = process.env.ADMIN_PHONE || null;
 
 // Para evitar procesar dos veces el mismo pago (webhooks duplicados)
 const processedPayments = new Set();
@@ -97,6 +98,21 @@ export async function mpWebhook(req, res) {
         `Lo vamos a entregar en la dirección y rango horario que elegiste.\n\n` +
         `Gracias por confiar en Pamperito. Cualquier cosa, escribinos por acá 😉`
     );
+
+    // Avisamos también al admin que el pago quedó aprobado
+    if (ADMIN_PHONE) {
+      const totalTxt =
+        typeof order.total === "number" ? order.total : Number(order.total) || 0;
+
+      await sendTextMessage(
+        ADMIN_PHONE,
+        `✅ *Pago aprobado por MercadoPago*\n\n` +
+          `Pedido: *${order.id}*\n` +
+          `Cliente: ${order.from || "teléfono desconocido"}\n` +
+          (totalTxt ? `Total: $${totalTxt}\n` : "") +
+          `Estado: PAGADO`
+      );
+    }
 
     return res.sendStatus(200);
   } catch (e) {

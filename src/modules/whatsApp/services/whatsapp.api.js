@@ -185,6 +185,7 @@ export async function sendProductMenu(to) {
 }
 
 // ---------- Botón para repetir último pedido ----------
+
 export async function sendRepeatButton(to, summaryText) {
   const payload = {
     messaging_product: "whatsapp",
@@ -378,48 +379,56 @@ export async function sendAddressConfirmButtons(to, address) {
 }
 
 // ---------- Día de entrega ----------
-// 👉 Lógica nueva: depende del día de la semana y la hora actual.
-export async function sendDeliveryDayButtons(to) {
+
+// Helpers para lógica de días
+function isWorkingDay(date) {
+  const d = date.getDay(); // 0 = domingo, 1 = lunes, ..., 6 = sábado
+  return d >= 1 && d <= 5; // lunes a viernes
+}
+
+function getAvailableDeliveryDays() {
   const now = new Date();
-  const weekday = now.getDay(); // 0=domingo ... 5=viernes, 6=sábado
   const hour = now.getHours();
 
-  const buttons = [];
+  const today = new Date(now);
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
 
-  const isWeekday = weekday >= 1 && weekday <= 5; // lun-vie
+  const options = [];
 
-  // "Hoy" solo si es día hábil y todavía estamos dentro del horario (antes de las 18)
-  if (isWeekday && hour < 18) {
-    buttons.push({
-      type: "reply",
-      reply: {
-        id: "day_today",
-        title: "Hoy",
-      },
+  // HOY: si hoy es laboral y antes de las 18hs
+  if (isWorkingDay(today) && hour < 18) {
+    options.push({
+      id: "day_today",
+      title: "Hoy",
     });
   }
 
-  // "Mañana":
-  //  - Solo si hoy es lunes a jueves (mañana es otro día hábil)
-  //  - No se muestra si es viernes, sábado o domingo.
-  if (weekday >= 1 && weekday <= 4) {
-    buttons.push({
-      type: "reply",
-      reply: {
-        id: "day_tomorrow",
-        title: "Mañana",
-      },
+  // MAÑANA: si mañana es laboral (por eso domingo → mañana lunes SÍ)
+  if (isWorkingDay(tomorrow)) {
+    options.push({
+      id: "day_tomorrow",
+      title: "Mañana",
     });
   }
 
-  // Siempre dejamos una opción flexible (por ej. fines de semana puede quedar solo esta)
-  buttons.push({
+  // Siempre opción flexible
+  options.push({
+    id: "day_flexible",
+    title: "Próximos días",
+  });
+
+  return options;
+}
+
+export async function sendDeliveryDayButtons(to) {
+  const buttons = getAvailableDeliveryDays().map((opt) => ({
     type: "reply",
     reply: {
-      id: "day_flexible",
-      title: "Próximos días",
+      id: opt.id,
+      title: opt.title,
     },
-  });
+  }));
 
   const payload = {
     messaging_product: "whatsapp",
@@ -441,20 +450,15 @@ export async function sendDeliveryDayButtons(to) {
 }
 
 // ---------- Rango horario de entrega ----------
-// 👉 Lógica nueva:
-//    - Si el cliente eligió "Hoy" y ya pasó cierta hora, vamos
-//      deshabilitando franjas que ya no tienen sentido.
-//    - Para "Mañana" o "Próximos días" se muestran todas.
+
 export async function sendDeliverySlotButtons(to, dayLabel = "") {
   const now = new Date();
   const hour = now.getHours();
-
   const isToday = dayLabel.toLowerCase().includes("hoy");
 
   const buttons = [];
 
-  // Mañana (08–12) solo si NO es hoy con la mañana ya pasada.
-  // Si son las 12 o más, ya no ofrecemos la franja 08–12 para "Hoy".
+  // Mañana (08–12) solo si no es hoy con la mañana ya pasada
   if (!(isToday && hour >= 12)) {
     buttons.push({
       type: "reply",
@@ -465,8 +469,7 @@ export async function sendDeliverySlotButtons(to, dayLabel = "") {
     });
   }
 
-  // Tarde (12–16) solo si NO es hoy con la tarde ya "al límite".
-  // Si son las 16 o más, no tiene sentido ofrecer 12–16 para "Hoy".
+  // Tarde (12–16) solo si no es hoy con la tarde ya muy justa
   if (!(isToday && hour >= 16)) {
     buttons.push({
       type: "reply",
