@@ -56,7 +56,6 @@ export async function sendOrderLink(to, preferenceUrl, orderId) {
   await sendTextMessage(to, body);
 }
 
-
 // ---------- Menú principal ----------
 
 export async function sendButtons(to) {
@@ -205,7 +204,6 @@ export async function sendRepeatButton(to, summaryText) {
             type: "reply",
             reply: {
               id: "repeat_last",
-              // 👇 más corto, dentro del límite
               title: "🔁 Repetir pedido",
             },
           },
@@ -216,7 +214,6 @@ export async function sendRepeatButton(to, summaryText) {
 
   await callWhatsApp(payload);
 }
-
 
 // ---------- Método de pago ----------
 
@@ -381,8 +378,49 @@ export async function sendAddressConfirmButtons(to, address) {
 }
 
 // ---------- Día de entrega ----------
-
+// 👉 Lógica nueva: depende del día de la semana y la hora actual.
 export async function sendDeliveryDayButtons(to) {
+  const now = new Date();
+  const weekday = now.getDay(); // 0=domingo ... 5=viernes, 6=sábado
+  const hour = now.getHours();
+
+  const buttons = [];
+
+  const isWeekday = weekday >= 1 && weekday <= 5; // lun-vie
+
+  // "Hoy" solo si es día hábil y todavía estamos dentro del horario (antes de las 18)
+  if (isWeekday && hour < 18) {
+    buttons.push({
+      type: "reply",
+      reply: {
+        id: "day_today",
+        title: "Hoy",
+      },
+    });
+  }
+
+  // "Mañana":
+  //  - Solo si hoy es lunes a jueves (mañana es otro día hábil)
+  //  - No se muestra si es viernes, sábado o domingo.
+  if (weekday >= 1 && weekday <= 4) {
+    buttons.push({
+      type: "reply",
+      reply: {
+        id: "day_tomorrow",
+        title: "Mañana",
+      },
+    });
+  }
+
+  // Siempre dejamos una opción flexible (por ej. fines de semana puede quedar solo esta)
+  buttons.push({
+    type: "reply",
+    reply: {
+      id: "day_flexible",
+      title: "Próximos días",
+    },
+  });
+
   const payload = {
     messaging_product: "whatsapp",
     to,
@@ -394,29 +432,7 @@ export async function sendDeliveryDayButtons(to) {
           "¿Para qué día te gustaría recibir el pedido? (Es orientativo y puede ajustarse según el reparto) 🗓️",
       },
       action: {
-        buttons: [
-          {
-            type: "reply",
-            reply: {
-              id: "day_today",
-              title: "Hoy",
-            },
-          },
-          {
-            type: "reply",
-            reply: {
-              id: "day_tomorrow",
-              title: "Mañana",
-            },
-          },
-          {
-            type: "reply",
-            reply: {
-              id: "day_flexible",
-              title: "Próximos días",
-            },
-          },
-        ],
+        buttons,
       },
     },
   };
@@ -425,8 +441,51 @@ export async function sendDeliveryDayButtons(to) {
 }
 
 // ---------- Rango horario de entrega ----------
-
+// 👉 Lógica nueva:
+//    - Si el cliente eligió "Hoy" y ya pasó cierta hora, vamos
+//      deshabilitando franjas que ya no tienen sentido.
+//    - Para "Mañana" o "Próximos días" se muestran todas.
 export async function sendDeliverySlotButtons(to, dayLabel = "") {
+  const now = new Date();
+  const hour = now.getHours();
+
+  const isToday = dayLabel.toLowerCase().includes("hoy");
+
+  const buttons = [];
+
+  // Mañana (08–12) solo si NO es hoy con la mañana ya pasada.
+  // Si son las 12 o más, ya no ofrecemos la franja 08–12 para "Hoy".
+  if (!(isToday && hour >= 12)) {
+    buttons.push({
+      type: "reply",
+      reply: {
+        id: "slot_morning",
+        title: "08 a 12 hs",
+      },
+    });
+  }
+
+  // Tarde (12–16) solo si NO es hoy con la tarde ya "al límite".
+  // Si son las 16 o más, no tiene sentido ofrecer 12–16 para "Hoy".
+  if (!(isToday && hour >= 16)) {
+    buttons.push({
+      type: "reply",
+      reply: {
+        id: "slot_afternoon",
+        title: "12 a 16 hs",
+      },
+    });
+  }
+
+  // Siempre dejamos la franja 16–18 como última opción
+  buttons.push({
+    type: "reply",
+    reply: {
+      id: "slot_late",
+      title: "16 a 18 hs",
+    },
+  });
+
   const payload = {
     messaging_product: "whatsapp",
     to,
@@ -439,29 +498,7 @@ export async function sendDeliverySlotButtons(to, dayLabel = "") {
           "¿qué rango horario te viene mejor? (Es a modo sugerido) ⏰",
       },
       action: {
-        buttons: [
-          {
-            type: "reply",
-            reply: {
-              id: "slot_morning",
-              title: "08 a 12 hs",
-            },
-          },
-          {
-            type: "reply",
-            reply: {
-              id: "slot_afternoon",
-              title: "12 a 16 hs",
-            },
-          },
-          {
-            type: "reply",
-            reply: {
-              id: "slot_late",
-              title: "16 a 18 hs",
-            },
-          },
-        ],
+        buttons,
       },
     },
   };

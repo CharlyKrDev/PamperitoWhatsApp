@@ -8,6 +8,7 @@ dotenv.config();
 
 const ORDERS_FILE = path.resolve("src/db/orders.json");
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || null;
+const MP_WEBHOOK_URL = process.env.MP_WEBHOOK_URL || null;
 
 // --------- helpers de archivo ---------
 async function ensureOrdersFile() {
@@ -70,7 +71,7 @@ export async function markPaid(orderId) {
   return updated;
 }
 
-// ✅ NUEVO: obtiene la última orden de un número de WhatsApp
+// Obtiene la última orden de un número de WhatsApp
 export async function getLastOrderByPhone(phone) {
   if (!phone) return null;
   const orders = await readOrders();
@@ -78,7 +79,6 @@ export async function getLastOrderByPhone(phone) {
   const fromSamePhone = orders.filter((o) => o.from === phone);
   if (!fromSamePhone.length) return null;
 
-  // Ordenamos por createdAt descendente (la más nueva primero)
   fromSamePhone.sort((a, b) => {
     const da = new Date(a.createdAt || 0).getTime();
     const db = new Date(b.createdAt || 0).getTime();
@@ -109,6 +109,9 @@ export async function createPreference(orderId, total) {
       },
     ],
     external_reference: orderId,
+    metadata: { orderId },
+    // importante para el webhook en modo test
+    notification_url: MP_WEBHOOK_URL || undefined,
   };
 
   try {
@@ -120,14 +123,13 @@ export async function createPreference(orderId, total) {
     });
 
     const pref = resp.data;
-    // intentamos devolver un link válido
-    return (
-      pref.init_point ||
-      pref.sandbox_init_point ||
-      null
-    );
+    // en modo test suele venir sandbox_init_point
+    return pref.init_point || pref.sandbox_init_point || null;
   } catch (err) {
-    console.error("[MercadoPago] Error creando preferencia:", err.message);
+    console.error(
+      "[MercadoPago] Error creando preferencia:",
+      err?.response?.data || err.message
+    );
     return null;
   }
 }

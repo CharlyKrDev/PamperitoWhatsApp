@@ -1,28 +1,110 @@
 // src/modules/mercadoPago/controllers/mp.controller.js
 import "dotenv/config";
+import axios from "axios";
 import { markPaid } from "../services/mp.api.js";
-import { sendTextMessage } from "../../whatsApp/services/whatsapp.api.js";
+import { sendTextMessage } from "../../whatsApp/services/whatsApp.api.js";
+
+const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || null;
+
+// Para evitar procesar dos veces el mismo pago (webhooks duplicados)
+const processedPayments = new Set();
 
 export async function mpWebhook(req, res) {
   try {
-    // Payload demo esperado:
-    // { data: { status: "approved", external_reference: "PAM-123..." } }
-    const status = req.body?.data?.status;
-    const ref    = req.body?.data?.external_reference;
+    // MP puede mandar la info en query o en body según el tipo de evento
+    const topic =
+      req.query.topic ||
+      req.query.type ||
+      req.body?.topic ||
+      req.body?.type ||
+      null;
 
-    if (status === "approved" && ref) {
-      const order = markPaid(ref);
-      if (order) {
-        await sendTextMessage(
-          order.from,
-          `✔️ Pago aprobado. Pedido #${order.id} confirmado.\n` +
-          `Coordinamos la entrega por este medio. 🙌`
-        );
-      }
+    const paymentId =
+      req.query["data.id"] ||
+      req.body?.data?.id ||
+      req.body?.data?.payment?.id ||
+      null;
+
+    console.log("[MP Webhook] Incoming:", { topic, paymentId });
+
+    // Ignoramos todo lo que no sea "payment"
+    if (topic !== "payment") {
+      console.log("[MP Webhook] Evento ignorado:", { topic, paymentId });
+      return res.sendStatus(200);
     }
+
+    if (!paymentId) {
+      console.warn("[MP Webhook] Sin paymentId, no se puede procesar.");
+      return res.sendStatus(200);
+    }
+
+    if (!MP_ACCESS_TOKEN) {
+      console.warn(
+        "[MP Webhook] MP_ACCESS_TOKEN no configurado, no se consulta el pago."
+      );
+      return res.sendStatus(200);
+    }
+
+    // 🔁 Idempotencia: si ya procesamos este pago, lo ignoramos
+    if (processedPayments.has(paymentId)) {
+      console.log(
+        "[MP Webhook] Pago ya procesado, ignorando duplicado:",
+        paymentId
+      );
+      return res.sendStatus(200);
+    }
+
+    // Lo marcamos como procesado
+    processedPayments.add(paymentId);
+
+    // Consultamos el pago a la API de MP para obtener status y external_reference
+    const url = `https://api.mercadopago.com/v1/payments/${paymentId}`;
+    const resp = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
+      },
+    });
+
+    const payment = resp.data || {};
+    const status = payment.status;
+    const orderId = payment.external_reference || null;
+
+    console.log("[MP Webhook] Pago recibido:", {
+      paymentId,
+      status,
+      orderId,
+    });
+
+    // Solo nos interesa cuando está aprobado y tenemos referencia de orden
+    if (status !== "approved" || !orderId) {
+      return res.sendStatus(200);
+    }
+
+    const order = await markPaid(orderId);
+    if (!order) {
+      console.warn(
+        "[MP Webhook] No se encontró la orden para marcar como pagada:",
+        orderId
+      );
+      return res.sendStatus(200);
+    }
+
+    // Mensaje más prolijo: confirmamos pago y que se entrega según lo acordado
+    await sendTextMessage(
+      order.from,
+      `✅ *Pago aprobado*\n\n` +
+        `Tu pedido *${order.id}* quedó confirmado 🔥\n` +
+        `Lo vamos a entregar en la dirección y rango horario que elegiste.\n\n` +
+        `Gracias por confiar en Pamperito. Cualquier cosa, escribinos por acá 😉`
+    );
+
     return res.sendStatus(200);
   } catch (e) {
-    console.error("Error en webhook MP:", e?.response?.data || e);
+    console.error(
+      "[MP Webhook] Error:",
+      e?.response?.data || e?.message || e
+    );
+    // devolvemos 200 igual para que MP no se quede reintentando en loop
     return res.sendStatus(200);
   }
 }

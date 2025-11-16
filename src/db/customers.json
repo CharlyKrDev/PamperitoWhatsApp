@@ -1,20 +1,11 @@
 [
   {
     "phone": "393514049231",
-    "name": "Marianela",
+    "name": "Dante",
     "address": null,
     "zone": null,
-    "lastOrderId": "PAM-1763238161751",
-    "createdAt": "2025-11-15T19:37:44.532Z",
-    "updatedAt": "2025-11-15T20:22:41.754Z"
-  },
-  {
-    "phone": "393513911053",
-    "name": "Maxixd",
-    "address": null,
-    "zone": null,
-    "lastOrderId": "PAM-1763238350255",
-    "createdAt": "2025-11-15T20:18:36.657Z",
-    "updatedAt": "2025-11-15T20:25:50.259Z"
+    "lastOrderId": "PAM-1763312234042",
+    "createdAt": "2025-11-16T16:27:07.882Z",
+    "updatedAt": "2025-11-16T16:57:14.047Z"
   }
 ]

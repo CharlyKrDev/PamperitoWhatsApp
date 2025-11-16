@@ -14,7 +14,7 @@ import {
   sendAddressConfirmButtons,
   sendDeliveryDayButtons,
   sendDeliverySlotButtons,
-} from "../services/whatsApp.api.js";
+} from "../services/whatsapp.api.js";
 
 import { calcTotal, loadCatalog } from "../../../utils/calc.js";
 
@@ -123,8 +123,9 @@ function summarizeOrder(order) {
     const dayLabel = d.dayLabel || d.day || "";
     const slotLabel = d.slotLabel || d.slot || "";
     if (dayLabel || slotLabel) {
-      deliveryStr = `\n🚚 Entrega sugerida: ${dayLabel || ""}${dayLabel && slotLabel ? " - " : ""
-        }${slotLabel || ""}`;
+      deliveryStr = `\n🚚 Entrega sugerida: ${dayLabel || ""}${
+        dayLabel && slotLabel ? " - " : ""
+      }${slotLabel || ""}`;
     }
   }
 
@@ -314,7 +315,6 @@ export async function receiveWebhook(req, res) {
         return res.sendStatus(200);
       }
     }
-
 
     // -------- B) Cantidad luego de elegir producto --------
 
@@ -539,7 +539,6 @@ export async function receiveWebhook(req, res) {
           enableCash: ENABLE_CASH,
         });
 
-
         return res.sendStatus(200);
       }
     }
@@ -731,7 +730,7 @@ export async function receiveWebhook(req, res) {
       };
       await notifyAdminNewOrder(orderForAdmin, customer);
 
-      // 🆕 Mensaje de despedida
+      // Mensaje de despedida
       await sendTextMessage(
         from,
         "🔥 Gracias por confiar en Pamperito.\nCualquier cosa que necesites, estamos por acá 😉"
@@ -767,7 +766,7 @@ export async function receiveWebhook(req, res) {
       };
       await notifyAdminNewOrder(orderForAdmin, customer);
 
-      // 🆕 Mensaje de despedida
+      // Mensaje de despedida
       await sendTextMessage(
         from,
         "🔥 Gracias por comprar en Pamperito.\nCuando quieras volver a pedir, mandanos un mensaje 😉"
@@ -832,11 +831,7 @@ export async function receiveWebhook(req, res) {
 
     // -------- 8) Casos de texto simple útiles (zona de envío) --------
 
-    if (
-      type === "text" &&
-      lower.includes("zona") &&
-      lower.includes("env")
-    ) {
+    if (type === "text" && lower.includes("zona") && lower.includes("env")) {
       await sendTextMessage(
         from,
         "🚚 *Zonas de entrega*\n\nRealizamos entregas únicamente dentro de *Venado Tuerto*.\n\n🕗 *Horarios*: Lunes a Viernes\n⏰ *08:00 a 18:00 hs*\n💵 *Sin costo adicional*."
@@ -859,6 +854,7 @@ export async function receiveWebhook(req, res) {
     return res.sendStatus(500);
   }
 }
+
 //---- Helper para notificar al Admin de la compra ---//
 async function notifyAdminNewOrder(order, customer) {
   if (!ADMIN_PHONE) return;
@@ -879,4 +875,3 @@ async function notifyAdminNewOrder(order, customer) {
 
   await sendTextMessage(ADMIN_PHONE, msg);
 }
-

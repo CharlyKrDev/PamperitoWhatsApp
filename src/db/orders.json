@@ -751,5 +751,460 @@
     "meta": {
       "paymentMethod": "PENDING"
     }
+  },
+  {
+    "id": "PAM-1763238833560",
+    "createdAt": "2025-11-15T20:33:53.560Z",
+    "status": "PENDING",
+    "from": "393513911053",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_4kg",
+          "label": "Carbón - bolsa 4kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego 450",
+      "delivery": {
+        "day": "day_tomorrow",
+        "dayLabel": "Mañana (16/11)",
+        "slot": "slot_late",
+        "slotLabel": "16:00 a 18:00 hs"
+      }
+    },
+    "total": 20000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763239083467",
+    "createdAt": "2025-11-15T20:38:03.467Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_3kg",
+          "label": "Carbón - bolsa 3kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_today",
+        "dayLabel": "Hoy (15/11)",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 15000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763243423021",
+    "createdAt": "2025-11-15T21:50:23.040Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_3kg",
+          "label": "Carbón - bolsa 3kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "dorrego 301",
+      "delivery": {
+        "day": "day_today",
+        "dayLabel": "Hoy (15/11)",
+        "slot": "slot_late",
+        "slotLabel": "16:00 a 18:00 hs"
+      }
+    },
+    "total": 15000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763245178698",
+    "createdAt": "2025-11-15T22:19:38.698Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_3kg",
+          "label": "Carbón - bolsa 3kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "dorrego 301",
+      "delivery": {
+        "day": "day_today",
+        "dayLabel": "Hoy (15/11)",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 15000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763246570701",
+    "createdAt": "2025-11-15T22:42:50.701Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_3kg",
+          "label": "Carbón - bolsa 3kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "dorrego 301",
+      "delivery": {
+        "day": "day_today",
+        "dayLabel": "Hoy (15/11)",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 15000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763248851898",
+    "createdAt": "2025-11-15T23:20:51.915Z",
+    "status": "PAID",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_3kg",
+          "label": "Carbón - bolsa 3kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "dorrego 301",
+      "delivery": {
+        "day": "day_today",
+        "dayLabel": "Hoy (15/11)",
+        "slot": "slot_morning",
+        "slotLabel": "08:00 a 12:00 hs"
+      }
+    },
+    "total": 15000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    },
+    "paidAt": "2025-11-15T23:27:41.084Z"
+  },
+  {
+    "id": "PAM-1763249411968",
+    "createdAt": "2025-11-15T23:30:11.968Z",
+    "status": "PAID",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "carbon_3kg",
+          "label": "Carbón - bolsa 3kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "dorrego 301",
+      "delivery": {
+        "day": "day_today",
+        "dayLabel": "Hoy (15/11)",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 15000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    },
+    "paidAt": "2025-11-15T23:31:27.737Z"
+  },
+  {
+    "id": "PAM-1763301493158",
+    "createdAt": "2025-11-16T13:58:13.158Z",
+    "status": "PAID",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "dorrego 301",
+      "delivery": {
+        "day": "day_today",
+        "dayLabel": "Hoy (16/11)",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 30000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    },
+    "paidAt": "2025-11-16T13:59:04.780Z"
+  },
+  {
+    "id": "PAM-1763309866307",
+    "createdAt": "2025-11-16T16:17:46.307Z",
+    "status": "PAID",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_today",
+        "dayLabel": "Hoy (16/11)",
+        "slot": "slot_morning",
+        "slotLabel": "08:00 a 12:00 hs"
+      }
+    },
+    "total": 30000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    },
+    "paidAt": "2025-11-16T16:23:32.617Z"
+  },
+  {
+    "id": "PAM-1763310538299",
+    "createdAt": "2025-11-16T16:28:58.299Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña - bolsa 20kg",
+          "quantity": 10,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Garibaldi 535",
+      "delivery": {
+        "day": "day_flexible",
+        "dayLabel": "Próximos días (flexible)",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 90000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763310749717",
+    "createdAt": "2025-11-16T16:32:29.717Z",
+    "status": "PAID",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña - bolsa 20kg",
+          "quantity": 10,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Garibaldi 535",
+      "delivery": {
+        "day": "day_today",
+        "dayLabel": "Hoy (16/11)",
+        "slot": "slot_late",
+        "slotLabel": "16:00 a 18:00 hs"
+      }
+    },
+    "total": 90000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    },
+    "paidAt": "2025-11-16T16:55:28.078Z"
+  },
+  {
+    "id": "PAM-1763311053224",
+    "createdAt": "2025-11-16T16:37:33.224Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña - bolsa 20kg",
+          "quantity": 10,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_today",
+        "dayLabel": "Hoy (16/11)",
+        "slot": "slot_morning",
+        "slotLabel": "08:00 a 12:00 hs"
+      }
+    },
+    "total": 90000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763311359156",
+    "createdAt": "2025-11-16T16:42:39.156Z",
+    "status": "PAID",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña - bolsa 20kg",
+          "quantity": 10,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_flexible",
+        "dayLabel": "Próximos días (flexible)",
+        "slot": "slot_morning",
+        "slotLabel": "08:00 a 12:00 hs"
+      }
+    },
+    "total": 90000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    },
+    "paidAt": "2025-11-16T16:43:34.429Z"
+  },
+  {
+    "id": "PAM-1763311784499",
+    "createdAt": "2025-11-16T16:49:44.499Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña - bolsa 20kg",
+          "quantity": 10,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_flexible",
+        "dayLabel": "Próximos días (flexible)",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 90000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
+  },
+  {
+    "id": "PAM-1763311859371",
+    "createdAt": "2025-11-16T16:50:59.371Z",
+    "status": "PAID",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña - bolsa 20kg",
+          "quantity": 10,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_flexible",
+        "dayLabel": "Próximos días (flexible)",
+        "slot": "slot_afternoon",
+        "slotLabel": "12:00 a 16:00 hs"
+      }
+    },
+    "total": 90000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    },
+    "paidAt": "2025-11-16T16:51:48.375Z"
+  },
+  {
+    "id": "PAM-1763312234042",
+    "createdAt": "2025-11-16T16:57:14.042Z",
+    "status": "PENDING",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_20kg",
+          "label": "Leña - bolsa 20kg",
+          "quantity": 10,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_flexible",
+        "dayLabel": "Próximos días (flexible)",
+        "slot": "slot_morning",
+        "slotLabel": "08:00 a 12:00 hs"
+      }
+    },
+    "total": 90000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    }
   }
 ]
