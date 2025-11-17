@@ -1,13 +1,15 @@
-# fly.toml app configuration file generated for pamperitowhatsapp on 2025-11-16T17:16:25-03:00
+# fly.toml app configuration file generated for pamperitowhatsapp on 2025-11-17T18:52:31Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
 app = 'pamperitowhatsapp'
-primary_region = 'iad'
+primary_region = 'ams'
+
+[build]
 
 [http_service]
-  internal_port = 3000
+  internal_port = 8080
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
@@ -19,4 +21,3 @@ primary_region = 'iad'
   cpu_kind = 'shared'
   cpus = 1
   memory_mb = 1024
-  
