@@ -1,103 +1,218 @@
 // src/modules/mercadoPago/services/mp.api.js
-import fs from "fs/promises";
-import path from "path";
-import axios from "axios";
 import dotenv from "dotenv";
-
 dotenv.config();
 
-const ORDERS_FILE = path.resolve("src/db/orders.json");
+import axios from "axios";
+import { query } from "../../../db/postgres.js";
+import { getUnitPrice } from "../../../utils/calc.js";
+
 const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN || null;
 const MP_WEBHOOK_URL = process.env.MP_WEBHOOK_URL || null;
 
-// --------- helpers de archivo ---------
-async function ensureOrdersFile() {
-  try {
-    await fs.access(ORDERS_FILE);
-  } catch {
-    await fs.mkdir(path.dirname(ORDERS_FILE), { recursive: true });
-    await fs.writeFile(ORDERS_FILE, "[]", "utf8");
-  }
+// ---------- Helpers internos ----------
+
+// Genera IDs tipo PAM-<timestamp>
+function generateOrderId() {
+  return `PAM-${Date.now()}`;
 }
 
-async function readOrders() {
-  await ensureOrdersFile();
-  const raw = await fs.readFile(ORDERS_FILE, "utf8").catch(() => "[]");
-  try {
-    return JSON.parse(raw || "[]");
-  } catch {
-    // si se rompe el JSON, lo reiniciamos
-    return [];
-  }
-}
+// Mapea fila de orders a objeto que espera el bot
+function mapOrderRow(row) {
+  if (!row) return null;
 
-async function writeOrders(orders) {
-  await ensureOrdersFile();
-  await fs.writeFile(ORDERS_FILE, JSON.stringify(orders, null, 2), "utf8");
-}
-
-// --------- API pública ---------
-
-// Guarda una nueva orden y devuelve la orden completa (con id)
-export async function persistOrder(order) {
-  const orders = await readOrders();
-
-  const newOrder = {
-    id: `PAM-${Date.now()}`,
-    createdAt: new Date().toISOString(),
-    status: order.status || "PENDING",
-    ...order,
+  return {
+    id: row.id,
+    from: row.from_phone || row.phone || null,
+    parsed: row.parsed,
+    total: Number(row.total ?? 0),
+    status: row.status,
+    meta: row.meta || {},
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    // OJO: no usamos paid_at porque tu tabla no lo tiene
   };
-
-  orders.push(newOrder);
-  await writeOrders(orders);
-  return newOrder;
 }
 
-// Marca una orden como pagada, devuelve la orden actualizada o null si no existe
-export async function markPaid(orderId) {
-  const orders = await readOrders();
-  const idx = orders.findIndex((o) => o.id === orderId);
-  if (idx === -1) return null;
+// ---------- Persistencia de PEDIDOS ----------
 
-  const updated = {
-    ...orders[idx],
-    status: "PAID",
-    paidAt: new Date().toISOString(),
-  };
+/**
+ * persistOrder({ from, parsed, total, status, meta }) -> order
+ *
+ * - Crea la orden en la tabla `orders`
+ * - Graba items en `order_items` (si vienen en parsed.items)
+ */
+export async function persistOrder({
+  from,
+  parsed,
+  total,
+  status = "PENDING",
+  meta = {},
+}) {
+  if (!from) {
+    throw new Error("[MP] persistOrder requiere 'from'");
+  }
 
-  orders[idx] = updated;
-  await writeOrders(orders);
-  return updated;
+  const id = generateOrderId();
+  const safeTotal = Number(total ?? 0);
+
+  // 1) Insert en orders
+  await query(
+    `
+    INSERT INTO orders (id, from_phone, parsed, total, status, meta)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    `,
+    [id, from, parsed || {}, safeTotal, status, meta || {}]
+  );
+
+  // 2) Insert en order_items (opcional)
+  if (parsed && Array.isArray(parsed.items) && parsed.items.length) {
+    for (const item of parsed.items) {
+      const quantity = Number(item.quantity) || 1;
+      const unitPrice = await getUnitPrice(item.id || null, quantity);
+
+      await query(
+        `
+      INSERT INTO order_items
+        (order_id, product_id, label, quantity, unit, unit_price)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      `,
+        [
+          id,
+          item.id || null,
+          item.label || null,
+          quantity,
+          item.unit || null,
+          unitPrice,
+        ]
+      );
+    }
+  }
+
+  // 3) Devolvemos la orden recién creada
+  const res = await query(
+    `
+    SELECT
+      id,
+      from_phone,
+      parsed,
+      total,
+      status,
+      meta,
+      created_at,
+      updated_at
+    FROM orders
+    WHERE id = $1
+    `,
+    [id]
+  );
+
+  return mapOrderRow(res.rows[0]);
 }
 
-// Obtiene la última orden de un número de WhatsApp
+/**
+ * Devuelve el último pedido de un teléfono (o null si no hay)
+ */
 export async function getLastOrderByPhone(phone) {
   if (!phone) return null;
-  const orders = await readOrders();
 
-  const fromSamePhone = orders.filter((o) => o.from === phone);
-  if (!fromSamePhone.length) return null;
+  const res = await query(
+    `
+    SELECT
+      id,
+      from_phone,
+      parsed,
+      total,
+      status,
+      meta,
+      created_at,
+      updated_at
+    FROM orders
+    WHERE from_phone = $1
+    ORDER BY created_at DESC
+    LIMIT 1
+    `,
+    [phone]
+  );
 
-  fromSamePhone.sort((a, b) => {
-    const da = new Date(a.createdAt || 0).getTime();
-    const db = new Date(b.createdAt || 0).getTime();
-    return db - da;
-  });
-
-  return fromSamePhone[0];
+  return mapOrderRow(res.rows[0]);
 }
 
-// Crea una preferencia de pago en MP y devuelve el link (o null si no hay token)
+/**
+ * Marca una orden como pagada.
+ * - Se usa tanto desde el webhook de MP como desde el "pago ok PAM-123".
+ * - Opcionalmente registra un row en `payments`.
+ *
+ * @param {string} orderId   ej. 'PAM-1763344334658'
+ * @param {object} opts      { mpPaymentId, rawPayment }
+ */
+export async function markPaid(orderId, opts = {}) {
+  if (!orderId) return null;
+
+  const { mpPaymentId = null, rawPayment = null } = opts;
+
+  // 1) Actualizamos estado de la orden
+  const res = await query(
+    `
+    UPDATE orders
+    SET
+      status     = 'PAID',
+      meta       = COALESCE(meta, '{}'::jsonb) || '{"paymentStatus":"PAID"}',
+      updated_at = NOW()
+    WHERE id = $1
+    RETURNING
+      id,
+      from_phone,
+      parsed,
+      total,
+      status,
+      meta,
+      created_at,
+      updated_at
+    `,
+    [orderId]
+  );
+
+  const row = res.rows[0];
+  if (!row) {
+    return null;
+  }
+
+  const order = mapOrderRow(row);
+
+  // 2) Guardamos registro básico en payments (opcional)
+  try {
+    await query(
+      `
+      INSERT INTO payments (order_id, mp_payment_id, status, amount, raw)
+      VALUES ($1, $2, $3, $4, $5)
+      `,
+      [
+        orderId,
+        mpPaymentId,
+        "approved", // por ahora fijo; si queremos lo leemos del pago real
+        order.total,
+        rawPayment || {},
+      ]
+    );
+  } catch (e) {
+    console.warn("[MP] No se pudo insertar en payments:", e.message || e);
+  }
+
+  return order;
+}
+
+/**
+ * Crea una preferencia de pago en Mercado Pago y devuelve la URL (init_point)
+ */
 export async function createPreference(orderId, total) {
   if (!MP_ACCESS_TOKEN) {
     console.warn(
-      "[MercadoPago] MP_ACCESS_TOKEN no configurado. Modo demo, no se crea preferencia real."
+      "[MP] MP_ACCESS_TOKEN no configurado. No se puede crear preferencia."
     );
     return null;
   }
 
-  const url = "https://api.mercadopago.com/checkout/preferences";
+  const amount = Number(total ?? 0);
 
   const body = {
     items: [
@@ -105,29 +220,58 @@ export async function createPreference(orderId, total) {
         title: `Pedido ${orderId}`,
         quantity: 1,
         currency_id: "ARS",
-        unit_price: Number(total) || 0,
+        unit_price: amount,
       },
     ],
     external_reference: orderId,
-    metadata: { orderId },
     notification_url: MP_WEBHOOK_URL || undefined,
   };
 
   try {
-    const resp = await axios.post(url, body, {
-      headers: {
-        Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const resp = await axios.post(
+      "https://api.mercadopago.com/checkout/preferences",
+      body,
+      {
+        headers: {
+          Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-    const pref = resp.data;
+    const pref = resp.data || {};
     return pref.init_point || pref.sandbox_init_point || null;
   } catch (err) {
     console.error(
-      "[MercadoPago] Error creando preferencia:",
-      err?.response?.data || err.message
+      "[MP] Error creando preferencia:",
+      err?.response?.data || err?.message || err
     );
     return null;
+  }
+}
+
+// ---------- Log de notificaciones MP ----------
+
+/**
+ * logMpNotification(topic, paymentId, rawPayload)
+ *
+ * IMPORTANTE:
+ *   Tu tabla `mp_notifications` NO tiene la columna `payment_id`,
+ *   así que acá sólo guardamos: topic + raw.
+ */
+export async function logMpNotification(topic, paymentId, rawPayload) {
+  try {
+    await query(
+      `
+      INSERT INTO mp_notifications (topic, raw)
+      VALUES ($1, $2)
+      `,
+      [topic || null, rawPayload || {}]
+    );
+  } catch (e) {
+    console.warn(
+      "[MP] No se pudo loguear notificación en mp_notifications:",
+      e.message || e
+    );
   }
 }

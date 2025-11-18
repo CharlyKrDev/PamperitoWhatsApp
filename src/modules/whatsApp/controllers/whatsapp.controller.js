@@ -15,8 +15,9 @@ import {
   sendDeliveryDayButtons,
   sendDeliverySlotButtons,
 } from "../services/whatsapp.api.js";
+import { loadCatalog } from "../../catalog/services/catalog.api.js";
 
-import { calcTotal, loadCatalog } from "../../../utils/calc.js";
+import { calcTotal } from "../../../utils/calc.js";
 
 import {
   persistOrder,
@@ -184,7 +185,7 @@ async function handleRepeatOrder(from) {
   const zone = baseParsed.zone || "Venado Tuerto";
 
   const parsedPreview = { items, zone };
-  const totalPreview = calcTotal(parsedPreview);
+  const totalPreview = await calcTotal(parsedPreview);
   const previewOrder = { parsed: parsedPreview, total: totalPreview };
   const summaryText = summarizeOrder(previewOrder);
 
@@ -279,7 +280,7 @@ export async function receiveWebhook(req, res) {
         sessionState.set(from, { step: "ASK_NAME" });
         await sendTextMessage(
           from,
-          "No llegué a entender tu nombre 😅.\n\nProbá escribiendo *solo tu nombre*, sin frases como \"soy\" o \"me llamo\".\nEjemplo: *Cristian*"
+          'No llegué a entender tu nombre 😅.\n\nProbá escribiendo *solo tu nombre*, sin frases como "soy" o "me llamo".\nEjemplo: *Cristian*'
         );
         return res.status(200).end();
       }
@@ -341,7 +342,7 @@ export async function receiveWebhook(req, res) {
       }
 
       const quantity = Number(qtyMatch[1]) || 1;
-      const catalog = loadCatalog();
+      const catalog = await loadCatalog();
       const product = catalog[state.productId];
 
       if (!product) {
@@ -369,7 +370,7 @@ export async function receiveWebhook(req, res) {
         zone: "Venado Tuerto",
       };
 
-      const totalPreview = calcTotal(parsedPreview);
+      const totalPreview = await calcTotal(parsedPreview);
       const previewOrder = {
         parsed: parsedPreview,
         total: totalPreview,
@@ -444,12 +445,17 @@ export async function receiveWebhook(req, res) {
         btn === "day_tomorrow" ||
         btn === "day_flexible"
       ) {
-        const today = new Date();
+        const today = new Date(
+          new Date().toLocaleString("en-US", {
+            timeZone: "America/Argentina/Buenos_Aires",
+          })
+        );
 
         const formatShort = (d) =>
           d.toLocaleDateString("es-AR", {
             day: "2-digit",
             month: "2-digit",
+            timeZone: "America/Argentina/Buenos_Aires",
           });
 
         let dayLabel;
@@ -519,7 +525,7 @@ export async function receiveWebhook(req, res) {
           },
         };
 
-        const total = pendingTotal ?? calcTotal(parsed);
+        const total = pendingTotal ?? (await calcTotal(parsed));
 
         const order = await persistOrder({
           from,
@@ -529,7 +535,11 @@ export async function receiveWebhook(req, res) {
           meta: { paymentMethod: "PENDING" },
         });
 
-        await updateCustomerLastOrder(from, order.id);
+        // Actualizamos también la ficha del cliente con dirección y zona
+        await updateCustomerLastOrder(from, order.id, {
+          address: parsed.address || null,
+          zone: parsed.zone || null,
+        });
 
         const summary = summarizeOrder(order);
 
@@ -614,7 +624,7 @@ export async function receiveWebhook(req, res) {
       const name = customer.name || "";
 
       if (lastOrder) {
-        const recalculatedTotal = calcTotal(lastOrder.parsed || {});
+        const recalculatedTotal = await calcTotal(lastOrder.parsed || {});
         const orderWithNewTotal = {
           ...lastOrder,
           total: recalculatedTotal,
@@ -641,7 +651,8 @@ export async function receiveWebhook(req, res) {
     // -------- 4) Botones del menú principal --------
 
     if (btn === "prices") {
-      const catalog = loadCatalog();
+      const catalog = await loadCatalog();
+
       const lines = Object.values(catalog).map((p) => {
         const pr = p.pricing || {};
         const p1 = pr["1_9"] ?? "-";
@@ -690,7 +701,8 @@ export async function receiveWebhook(req, res) {
 
     if (btn && btn.startsWith("product_")) {
       const productId = btn.replace("product_", "");
-      const catalog = loadCatalog();
+
+      const catalog = await loadCatalog();
       const product = catalog[productId];
 
       if (!product) {
@@ -822,7 +834,7 @@ export async function receiveWebhook(req, res) {
         zone: "Venado Tuerto",
       };
 
-      const total = calcTotal(parsed);
+      const total = await calcTotal(parsed);
       const previewOrder = { parsed, total };
       const summary = summarizeOrder(previewOrder);
 

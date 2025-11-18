@@ -81,7 +81,11 @@ export async function mpWebhook(req, res) {
       return res.sendStatus(200);
     }
 
-    const order = await markPaid(orderId);
+    const order = await markPaid(orderId, {
+      mpPaymentId: paymentId,
+      rawPayment: payment,
+    });
+
     if (!order) {
       console.warn(
         "[MP Webhook] No se encontró la orden para marcar como pagada:",
@@ -90,7 +94,7 @@ export async function mpWebhook(req, res) {
       return res.sendStatus(200);
     }
 
-    // Mensaje más prolijo: confirmamos pago y que se entrega según lo acordado
+    // Mensaje al cliente
     await sendTextMessage(
       order.from,
       `✅ *Pago aprobado*\n\n` +
@@ -102,7 +106,9 @@ export async function mpWebhook(req, res) {
     // Avisamos también al admin que el pago quedó aprobado
     if (ADMIN_PHONE) {
       const totalTxt =
-        typeof order.total === "number" ? order.total : Number(order.total) || 0;
+        typeof order.total === "number"
+          ? order.total
+          : Number(order.total) || 0;
 
       await sendTextMessage(
         ADMIN_PHONE,

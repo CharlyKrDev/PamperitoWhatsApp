@@ -1291,5 +1291,34 @@
       "paymentMethod": "PENDING"
     },
     "paidAt": "2025-11-16T18:27:42.437Z"
+  },
+  {
+    "id": "PAM-1763329985270",
+    "createdAt": "2025-11-16T21:53:05.270Z",
+    "status": "PAID",
+    "from": "393514049231",
+    "parsed": {
+      "items": [
+        {
+          "id": "lenia_10kg",
+          "label": "Leña - bolsa 10kg",
+          "quantity": 5,
+          "unit": "bolsa"
+        }
+      ],
+      "zone": "Venado Tuerto",
+      "address": "Dorrego 301",
+      "delivery": {
+        "day": "day_tomorrow",
+        "dayLabel": "Mañana (17/11)",
+        "slot": "slot_morning",
+        "slotLabel": "08:00 a 12:00 hs"
+      }
+    },
+    "total": 30000,
+    "meta": {
+      "paymentMethod": "PENDING"
+    },
+    "paidAt": "2025-11-16T21:53:37.918Z"
   }
 ]
