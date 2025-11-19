@@ -1,4 +1,7 @@
 // src/modules/catalog/services/catalog.api.js
+import dotenv from "dotenv";
+dotenv.config();
+
 import postgres from "postgres";
 
 const DB_URL = process.env.SUPABASE_DB_URL || process.env.DATABASE_URL || null;
@@ -23,7 +26,7 @@ const seedCatalog = {
     pricing: {
       "1_9": 10000,
       "10_19": 9000,
-      "20_plus": 7000,
+      "20_plus": 8000,
     },
   },
   carbon_3kg: {
@@ -32,8 +35,8 @@ const seedCatalog = {
     unit: "bolsa",
     pricing: {
       "1_9": 3000,
-      "10_19": 2700,
-      "20_plus": 2400,
+      "10_19": 2800,
+      "20_plus": 2500,
     },
   },
   carbon_4kg: {
@@ -42,7 +45,7 @@ const seedCatalog = {
     unit: "bolsa",
     pricing: {
       "1_9": 4000,
-      "10_19": 3700,
+      "10_19": 3500,
       "20_plus": 3000,
     },
   },
@@ -113,6 +116,8 @@ export async function loadCatalog() {
         price_1_9,
         price_10_19,
         price_20_plus,
+        category,
+        emoji,
         is_active
       FROM catalog_items
       WHERE is_active = true
@@ -127,11 +132,14 @@ export async function loadCatalog() {
     }
 
     const catalog = {};
+
     for (const r of rows) {
       catalog[r.id] = {
         id: r.id,
         label: r.label,
         unit: r.unit,
+        category: r.category || null,
+        emoji: r.emoji || null,
         pricing: {
           "1_9": r.price_1_9 != null ? Number(r.price_1_9) : 0,
           "10_19": r.price_10_19 != null ? Number(r.price_10_19) : 0,
