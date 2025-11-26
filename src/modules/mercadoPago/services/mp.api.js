@@ -25,13 +25,23 @@ function mapOrderRow(row) {
     from: row.from_phone || row.phone || null,
     parsed: row.parsed,
     total: Number(row.total ?? 0),
+
+    // estado de pago (PENDING, PAID, etc.)
     status: row.status,
+
+    // estado logístico de entrega (PENDING, IN_DELIVERY, DELIVERED)
+    deliveryStatus: row.delivery_status || null,
+
     meta: row.meta || {},
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    // OJO: no usamos paid_at porque tu tabla no lo tiene
+
+    // fecha efectiva de entrega (puede ser null)
+    deliveredAt: row.delivered_at || null,
   };
 }
+
+
 
 // ---------- Persistencia de PEDIDOS ----------
 
@@ -200,6 +210,104 @@ export async function markPaid(orderId, opts = {}) {
 
   return order;
 }
+
+export async function updateOrderStatus(orderId, newStatus) {
+  if (!orderId) {
+    throw new Error("[Orders] updateOrderStatus requiere 'orderId'");
+  }
+
+  if (!newStatus) {
+    throw new Error("[Orders] updateOrderStatus requiere 'newStatus'");
+  }
+
+  const normalized = String(newStatus).toUpperCase().trim();
+  const allowed = ["PENDING", "PAID", "IN_DELIVERY", "DELIVERED"];
+
+  if (!allowed.includes(normalized)) {
+    throw new Error(
+      `[Orders] Estado inválido '${newStatus}'. Debe ser uno de: ${allowed.join(
+        ", "
+      )}`
+    );
+  }
+
+  // Si el estado es PAID, dejamos que lo maneje la lógica ya existente
+  if (normalized === "PAID") {
+    return await markPaid(orderId);
+  }
+
+  let queryText;
+
+  if (normalized === "IN_DELIVERY") {
+    queryText = `
+      UPDATE orders
+      SET
+        delivery_status = 'IN_DELIVERY',
+        updated_at      = NOW()
+      WHERE id = $1
+      RETURNING
+        id,
+        from_phone,
+        parsed,
+        total,
+        status,
+        delivery_status,
+        meta,
+        created_at,
+        updated_at,
+        delivered_at
+    `;
+  } else if (normalized === "DELIVERED") {
+    // Al marcar ENTREGADO, asumimos que el pedido quedó PAGADO
+    queryText = `
+      UPDATE orders
+      SET
+        delivery_status = 'DELIVERED',
+        delivered_at    = COALESCE(delivered_at, NOW()),
+        status          = 'PAID',
+        meta            = COALESCE(meta, '{}'::jsonb) || '{"paymentStatus":"PAID"}',
+        updated_at      = NOW()
+      WHERE id = $1
+      RETURNING
+        id,
+        from_phone,
+        parsed,
+        total,
+        status,
+        delivery_status,
+        meta,
+        created_at,
+        updated_at,
+        delivered_at
+    `;
+  } else {
+    // PENDING → estado logístico pendiente (no tocamos status si no es necesario)
+    queryText = `
+      UPDATE orders
+      SET
+        delivery_status = 'PENDING',
+        updated_at      = NOW()
+      WHERE id = $1
+      RETURNING
+        id,
+        from_phone,
+        parsed,
+        total,
+        status,
+        delivery_status,
+        meta,
+        created_at,
+        updated_at,
+        delivered_at
+    `;
+  }
+
+  const res = await query(queryText, [orderId]);
+  const row = res.rows[0];
+  return row ? mapOrderRow(row) : null;
+}
+
+
 
 /**
  * Crea una preferencia de pago en Mercado Pago y devuelve la URL (init_point)

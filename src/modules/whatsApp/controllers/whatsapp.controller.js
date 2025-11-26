@@ -5,6 +5,7 @@ dotenv.config();
 import {
   sendButtons,
   sendTextMessage,
+  sendAdminOrderStatusButtons,
   sendOrderLink,
   sendRepeatButton,
   sendProductMenu,
@@ -15,6 +16,7 @@ import {
   sendDeliveryDayButtons,
   sendDeliverySlotButtons,
 } from "../services/whatsapp.api.js";
+import { loadPaymentSettings } from "../../settings/settings.service.js";
 import { loadCatalog } from "../../catalog/services/catalog.api.js";
 
 import { calcTotal } from "../../../utils/calc.js";
@@ -24,6 +26,7 @@ import {
   createPreference,
   markPaid,
   getLastOrderByPhone,
+  updateOrderStatus,
 } from "../../mercadoPago/services/mp.api.js";
 
 import {
@@ -35,12 +38,9 @@ import {
 import { blacklist } from "../constants/blackList.js";
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
-const ADMIN_PHONE = process.env.ADMIN_PHONE || null;
-const ENABLE_MP = process.env.ENABLE_MP !== "false"; // default true
-const ENABLE_CASH = process.env.ENABLE_CASH !== "false"; // default true;
 
 // Estado en memoria (simple) para pasos del flujo
-const sessionState = new Map();
+export const sessionState = new Map();
 /*
 shape aproximado:
 
@@ -61,13 +61,21 @@ shape aproximado:
   deliverySlotKey: string,
   deliverySlotLabel: string,
   lastOrderId: string,
-  lastTotal: number
+  lastTotal: number,
+  lastParsed: any,
+  lastUpdated: number,
+  nudged: boolean,
 }
 */
 
 // Para detectar clientes con problemas
 const troubleState = new Map();
 const TROUBLE_THRESHOLD = 3;
+
+async function getAdminPhone() {
+  const settings = await loadPaymentSettings();
+  return settings.admin_phone || null;
+}
 
 // ---------- Helpers internos ----------
 
@@ -146,14 +154,14 @@ async function registerTrouble(from, lastText) {
     from,
     "Estoy teniendo problemas para tomar tu pedido automáticamente 😅. En breve te va a contactar alguien del local para ayudarte."
   );
-
-  if (ADMIN_PHONE) {
+  const adminPhone = await getAdminPhone();
+  if (adminPhone) {
     const msg =
       `⚠ Cliente con dificultades para operar con el bot.\n\n` +
       `📞 Número: ${from}\n` +
       (lastText ? `📝 Último mensaje: "${lastText}"` : "") +
       `\n\nRevisá la conversación y, si hace falta, contactalo desde el número del negocio.`;
-    await sendTextMessage(ADMIN_PHONE, msg);
+    await sendTextMessage(adminPhone, msg);
   } else {
     console.warn(
       "[Trouble] ADMIN_PHONE no configurado. No se puede notificar a Dante."
@@ -161,6 +169,22 @@ async function registerTrouble(from, lastText) {
   }
 
   return true;
+}
+
+// Helper para setear estado de sesión con timestamp
+export function setSessionState(from, patch) {
+  const prev = sessionState.get(from) || {};
+
+  sessionState.set(from, {
+    ...prev,
+    ...patch,
+    lastUpdated: Date.now(),
+    nudged: patch.nudged ?? prev.nudged ?? false,
+  });
+}
+
+export function clearSessionState(from) {
+  sessionState.delete(from);
 }
 
 // Repetir pedido → rehace carrito y vuelve a pedir dirección / día / horario / pago
@@ -194,12 +218,190 @@ async function handleRepeatOrder(from) {
     `Perfecto, repetimos tu último pedido con precios actualizados:\n\n${summaryText}\n\nAntes de confirmar, necesito la dirección de entrega 📍.\n\nEscribí la dirección completa (calle, número, barrio si aplica).\n\nSi querés cancelar y volver al inicio, escribí *cancelar*.`
   );
 
-  sessionState.set(from, {
+  setSessionState(from, {
     step: "ASK_ADDRESS",
     cartItems: items,
     pendingParsed: parsedPreview,
     pendingTotal: totalPreview,
   });
+}
+
+// 👉 Helper para obtener el nombre del negocio desde la config
+async function getBusinessName() {
+  try {
+    const settings = await loadPaymentSettings();
+    return settings.business_name || "Pamperito";
+  } catch (err) {
+    console.error("[Settings] Error cargando business_name:", err);
+    return "Pamperito";
+  }
+}
+
+// ---- Admin: cambio de estado por texto ----
+async function handleAdminCommands({ from, text }) {
+  // Comandos soportados:
+  //  - "envio PAM-123..." / "envío PAM-123..."
+  //  - "envio 123..." (solo números, sin PAM- → se completa solo)
+  //  - "entregado PAM-123..."
+  //  - "entregado 123..."
+
+  const trimmed = (text || "").trim();
+
+  let targetStatus = null;
+  let match = null;
+
+  // 1) Comando "envio <id>" o "envío <id>" o "en camino <id>"
+  match =
+    trimmed.match(/env[ií]o\s+([A-Za-z0-9\-]+)/i) ||
+    trimmed.match(/en\s+camino\s+([A-Za-z0-9\-]+)/i);
+
+  if (match) {
+    targetStatus = "IN_DELIVERY";
+  } else {
+    // 2) Comando "entregado <id>"
+    match = trimmed.match(/entregado\s+([A-Za-z0-9\-]+)/i);
+    if (match) {
+      targetStatus = "DELIVERED";
+    }
+  }
+
+  // Si no matchea ningún comando → dejamos que el flujo normal maneje el mensaje
+  if (!targetStatus || !match) {
+    return false;
+  }
+
+  // Normalizamos el ID del pedido
+  let rawId = (match[1] || "").trim();
+  let orderId;
+
+  if (/^\d+$/.test(rawId)) {
+    // Si puso solo números → armamos PAM-<números>
+    orderId = `PAM-${rawId}`;
+  } else {
+    // Si puso algo tipo pam-123, Pam-123 → lo pasamos a mayúsculas
+    orderId = rawId.toUpperCase();
+  }
+
+  return await processAdminStatusChange({ from, orderId, targetStatus });
+}
+
+// ---- Admin: cambio de estado por botones ----
+async function handleAdminButtons({ from, btnId }) {
+  // IDs de botones:
+  //  - "admin:in_delivery:PAM-123..."
+  //  - "admin:delivered:PAM-123..."
+
+  const parts = (btnId || "").split(":");
+  if (parts.length < 3 || parts[0] !== "admin") {
+    return false;
+  }
+
+  const action = parts[1];
+  const orderId = parts.slice(2).join(":"); // por si el ID tuviera ":"
+
+  let targetStatus = null;
+  if (action === "in_delivery") {
+    targetStatus = "IN_DELIVERY";
+  } else if (action === "delivered") {
+    targetStatus = "DELIVERED";
+  } else {
+    return false;
+  }
+
+  return await processAdminStatusChange({ from, orderId, targetStatus });
+}
+
+// ---- Admin: aplica cambio de estado y notifica ----
+async function processAdminStatusChange({ from, orderId, targetStatus }) {
+  // 1) Actualizamos estado en la DB
+  let order;
+  try {
+    order = await updateOrderStatus(orderId, targetStatus);
+  } catch (err) {
+    console.error("[Admin] Error en updateOrderStatus:", err);
+    await sendTextMessage(
+      from,
+      "Hubo un error al actualizar el estado del pedido 🤕. Probá de nuevo en un momento."
+    );
+    return true;
+  }
+
+  if (!order) {
+    await sendTextMessage(
+      from,
+      `No encontré ningún pedido con ID *${orderId}* ❌.\nRevisá el código e intentá de nuevo.`
+    );
+    return true;
+  }
+
+  // 2) Obtenemos datos del negocio y del cliente
+  const businessName = await getBusinessName();
+  const safeBusiness = businessName || "Pamperito";
+
+  let customer = null;
+  if (order.from) {
+    try {
+      customer = await getCustomerByPhone(order.from);
+    } catch (err) {
+      console.warn(
+        "[Admin] No se pudo cargar customer para notificar estado:",
+        err
+      );
+    }
+  }
+
+  // 3) Notificamos al cliente (si tenemos teléfono)
+  if (order.from) {
+    const lines = [];
+
+    lines.push("¡Hola! 👋");
+    lines.push(`Te escribimos de *${safeBusiness}*.`);
+
+    if (targetStatus === "IN_DELIVERY") {
+      lines.push(`Tu pedido *${order.id}* ya está *en camino* 🚚.`);
+    } else if (targetStatus === "DELIVERED") {
+      lines.push(`Tu pedido *${order.id}* fue marcado como *entregado* ✅.`);
+    }
+
+    if (order.total != null) {
+      lines.push(`Total: $${order.total}`);
+    }
+
+    lines.push("");
+    lines.push("¡Muchas gracias por tu compra! 😊");
+
+    await sendTextMessage(order.from, lines.join("\n"));
+  }
+
+  // 4) Confirmación al admin
+  const customerName = customer?.name || null;
+  const customerLabel =
+    customerName && order.from
+      ? `${customerName} (${order.from})`
+      : order.from || customerName || "cliente no identificado";
+
+  let statusLabel;
+  if (targetStatus === "IN_DELIVERY") statusLabel = "EN CAMINO";
+  else if (targetStatus === "DELIVERED") statusLabel = "ENTREGADO";
+  else statusLabel = targetStatus;
+
+  let adminMsg =
+    `Listo ✅. El pedido *${order.id}* ahora figura como *${statusLabel}*.\n` +
+    `Cliente: ${customerLabel}`;
+
+  if (order.total != null) {
+    adminMsg += `\nTotal: $${order.total}`;
+  }
+
+  if (order.from) {
+    adminMsg += `\nSe envió notificación automática al cliente.`;
+  } else {
+    adminMsg += `\nNo se pudo notificar al cliente (no hay teléfono asociado).`;
+  }
+
+  await sendTextMessage(from, adminMsg);
+
+  return true;
 }
 
 // ---------- Verificación del webhook (GET) ----------
@@ -250,9 +452,28 @@ export async function receiveWebhook(req, res) {
     const lower = text.toLowerCase();
     const state = sessionState.get(from);
 
+    // ---- MODO ADMIN: comandos especiales (envio / entregado) ----
+    const adminPhone = await getAdminPhone();
+    if (adminPhone && from === adminPhone) {
+      // 1) Primero intentamos ver si tocó un botón
+      if (btn && btn.startsWith("admin:")) {
+        const handledBtn = await handleAdminButtons({ from, btnId: btn });
+        if (handledBtn) {
+          return res.sendStatus(200);
+        }
+      }
+
+      // 2) Si no fue botón, probamos comandos por texto (envio / entregado)
+      const handledText = await handleAdminCommands({ from, text });
+      if (handledText) {
+        return res.sendStatus(200);
+      }
+      // Si no fue ni botón ni comando, sigue el flujo normal del bot (sin timeout especial)
+    }
+
     // === COMANDO GLOBAL: CANCELAR ===
     if (lower === "cancelar" || lower === "cancelar pedido") {
-      sessionState.delete(from);
+      clearSessionState(from);
 
       await sendTextMessage(
         from,
@@ -277,7 +498,7 @@ export async function receiveWebhook(req, res) {
 
       // si no queda nada → no entendimos el nombre, pedimos de nuevo
       if (!parts.length) {
-        sessionState.set(from, { step: "ASK_NAME" });
+        setSessionState(from, { step: "ASK_NAME" });
         await sendTextMessage(
           from,
           'No llegué a entender tu nombre 😅.\n\nProbá escribiendo *solo tu nombre*, sin frases como "soy" o "me llamo".\nEjemplo: *Cristian*'
@@ -290,7 +511,7 @@ export async function receiveWebhook(req, res) {
       const capitalized =
         cleanedName.charAt(0).toUpperCase() + cleanedName.slice(1);
 
-      sessionState.set(from, {
+      setSessionState(from, {
         step: "CONFIRM_NAME",
         tempName: capitalized,
       });
@@ -298,6 +519,7 @@ export async function receiveWebhook(req, res) {
       await sendNameConfirmButtons(from, capitalized);
       return res.status(200).end();
     }
+
     // -------- A.1) Confirmación de nombre --------
     if (state?.step === "CONFIRM_NAME") {
       if (btn === "name_yes") {
@@ -308,11 +530,13 @@ export async function receiveWebhook(req, res) {
           name,
         });
 
-        sessionState.delete(from);
+        clearSessionState(from);
+
+        const businessName = await getBusinessName();
 
         await sendTextMessage(
           from,
-          `Perfecto, *${name}* 😊 ¿En qué te puedo ayudar?`
+          `Perfecto, *${name}* 😊 ¿En qué te puedo ayudar en ${businessName}?`
         );
         await sendButtons(from);
         return res.sendStatus(200);
@@ -320,7 +544,7 @@ export async function receiveWebhook(req, res) {
 
       if (btn === "name_no") {
         // Volvemos a pedir el nombre
-        sessionState.set(from, { step: "ASK_NAME" });
+        setSessionState(from, { step: "ASK_NAME" });
         await sendTextMessage(
           from,
           "Ok, decime de nuevo cómo querés que te llame 🙂.\n\nEscribí *solo tu nombre*, por ejemplo: *Cristian*"
@@ -346,7 +570,7 @@ export async function receiveWebhook(req, res) {
       const product = catalog[state.productId];
 
       if (!product) {
-        sessionState.delete(from);
+        clearSessionState(from);
         await sendTextMessage(
           from,
           "No pude encontrar el producto. Probá de nuevo desde el menú principal diciendo *hola*."
@@ -380,7 +604,7 @@ export async function receiveWebhook(req, res) {
 
       await sendTextMessage(from, `Por ahora tu pedido es:\n\n${summary}`);
 
-      sessionState.set(from, {
+      setSessionState(from, {
         step: "ASK_MORE",
         cartItems: newItems,
       });
@@ -401,7 +625,7 @@ export async function receiveWebhook(req, res) {
         return res.sendStatus(200);
       }
 
-      sessionState.set(from, {
+      setSessionState(from, {
         ...state,
         step: "CONFIRM_ADDRESS",
         tempAddress: addr,
@@ -413,7 +637,7 @@ export async function receiveWebhook(req, res) {
 
     if (state?.step === "CONFIRM_ADDRESS") {
       if (btn === "addr_yes") {
-        sessionState.set(from, {
+        setSessionState(from, {
           ...state,
           step: "ASK_DELIVERY_DAY",
         });
@@ -423,7 +647,7 @@ export async function receiveWebhook(req, res) {
       }
 
       if (btn === "addr_no") {
-        sessionState.set(from, {
+        setSessionState(from, {
           ...state,
           step: "ASK_ADDRESS",
           tempAddress: undefined,
@@ -470,7 +694,7 @@ export async function receiveWebhook(req, res) {
           dayLabel = "Próximos días (flexible)";
         }
 
-        sessionState.set(from, {
+        setSessionState(from, {
           ...state,
           step: "ASK_DELIVERY_SLOT",
           deliveryDayKey: btn,
@@ -506,7 +730,7 @@ export async function receiveWebhook(req, res) {
         } = state || {};
 
         if (!cartItems || !cartItems.length || !pendingParsed) {
-          sessionState.delete(from);
+          clearSessionState(from);
           await sendTextMessage(
             from,
             "Se perdió la información del pedido. Probá de nuevo diciendo *hola*."
@@ -549,16 +773,27 @@ export async function receiveWebhook(req, res) {
         );
 
         // Guardamos estado para el paso de pago (incluyendo el parsed)
-        sessionState.set(from, {
+        setSessionState(from, {
           step: "ASK_PAYMENT_METHOD",
           lastOrderId: order.id,
           lastTotal: total,
           lastParsed: parsed,
         });
 
+        // ⬇️ Config del dashboard + regla de fallback
+        const paymentSettings = await loadPaymentSettings();
+
+        let enableMp = paymentSettings.enableMp;
+        let enableCash = paymentSettings.enableCash;
+
+        // Nunca ambas apagadas → si pasa, forzamos efectivo
+        if (!enableMp && !enableCash) {
+          enableCash = true;
+        }
+
         await sendPaymentMethodButtons(from, {
-          enableMp: ENABLE_MP,
-          enableCash: ENABLE_CASH,
+          enableMp,
+          enableCash,
         });
 
         return res.sendStatus(200);
@@ -609,15 +844,16 @@ export async function receiveWebhook(req, res) {
     // -------- 3) "hola" → cliente nuevo / registrado / frecuente --------
 
     if (lower.includes("hola")) {
+      const businessName = await getBusinessName();
       const customer = await getCustomerByPhone(from);
       const lastOrder = await getLastOrderByPhone(from);
 
       if (!customer) {
         await sendTextMessage(
           from,
-          "¡Hola! Soy el asistente de Pamperito 🔥 ¿Con quién tengo el gusto?\n\nDecime *solo tu nombre*, por ejemplo: *Cristian*"
+          `¡Hola! Soy el asistente de ${businessName} 🔥 ¿Con quién tengo el gusto?\n\nDecime *solo tu nombre*, por ejemplo: *Cristian*`
         );
-        sessionState.set(from, { step: "ASK_NAME" });
+        setSessionState(from, { step: "ASK_NAME" });
         return res.sendStatus(200);
       }
 
@@ -633,7 +869,7 @@ export async function receiveWebhook(req, res) {
 
         await sendTextMessage(
           from,
-          `Hola *${name}*, soy el asistente de Pamperito 🔥`
+          `Hola *${name}*, soy el asistente de ${businessName} 🔥`
         );
         await sendRepeatButton(from, summary);
         await sendButtons(from);
@@ -642,7 +878,7 @@ export async function receiveWebhook(req, res) {
 
       await sendTextMessage(
         from,
-        `Hola *${name}*, soy el asistente de Pamperito 🔥. Usá el menú de abajo para ver opciones y hacer tu pedido.`
+        `Hola *${name}*, soy el asistente de ${businessName} 🔥. Usá el menú de abajo para ver opciones y hacer tu pedido.`
       );
       await sendButtons(from);
       return res.sendStatus(200);
@@ -684,7 +920,7 @@ export async function receiveWebhook(req, res) {
     }
 
     if (btn === "make_order") {
-      sessionState.set(from, {
+      setSessionState(from, {
         step: "CART_IDLE",
         cartItems: [],
       });
@@ -715,7 +951,7 @@ export async function receiveWebhook(req, res) {
 
       const prevState = sessionState.get(from) || { cartItems: [] };
 
-      sessionState.set(from, {
+      setSessionState(from, {
         step: "ASK_QTY_PRODUCT",
         productId,
         cartItems: prevState.cartItems || [],
@@ -760,7 +996,7 @@ export async function receiveWebhook(req, res) {
         "🔥 Gracias por confiar en Pamperito.\nCualquier cosa que necesites, estamos por acá 😉"
       );
 
-      sessionState.delete(from);
+      clearSessionState(from);
       return res.sendStatus(200);
     }
 
@@ -796,7 +1032,7 @@ export async function receiveWebhook(req, res) {
         "🔥 Gracias por comprar en Pamperito.\nCuando quieras volver a pedir, mandanos un mensaje 😉"
       );
 
-      sessionState.delete(from);
+      clearSessionState(from);
       return res.sendStatus(200);
     }
 
@@ -806,7 +1042,7 @@ export async function receiveWebhook(req, res) {
       const st = sessionState.get(from);
       const cartItems = st?.cartItems || [];
 
-      sessionState.set(from, {
+      setSessionState(from, {
         step: "CART_IDLE",
         cartItems,
       });
@@ -821,7 +1057,7 @@ export async function receiveWebhook(req, res) {
       const cartItems = st?.cartItems || [];
 
       if (!cartItems.length) {
-        sessionState.delete(from);
+        clearSessionState(from);
         await sendTextMessage(
           from,
           "No encontré productos en tu pedido. Probá de nuevo desde el menú diciendo *hola*."
@@ -843,7 +1079,7 @@ export async function receiveWebhook(req, res) {
         `Resumen final de tu pedido:\n\n${summary}\n\nAntes de confirmar, necesito la dirección de entrega 📍.\n\nEscribí la dirección completa (calle, número, barrio si aplica).`
       );
 
-      sessionState.set(from, {
+      setSessionState(from, {
         step: "ASK_ADDRESS",
         cartItems,
         pendingParsed: parsed,
@@ -881,21 +1117,34 @@ export async function receiveWebhook(req, res) {
 
 //---- Helper para notificar al Admin de la compra ---//
 async function notifyAdminNewOrder(order, customer) {
-  if (!ADMIN_PHONE) return;
+  const adminPhone = await getAdminPhone();
+  if (!adminPhone) return;
 
-  const summary = summarizeOrder(order);
+  const adminLines = [];
+
+  adminLines.push("🧾 *Nuevo pedido recibido*");
+  adminLines.push("");
+  adminLines.push(`ID: *${order.id}*`);
+
   const name = customer?.name || "No registrado";
+  adminLines.push(`Cliente: ${name}`);
 
-  const msg =
-    "🧾 *Nuevo pedido recibido*\n\n" +
-    summary +
-    "\n\n👤 Nombre: " +
-    name +
-    "\n📞 Teléfono: " +
-    (order.from || "desconocido") +
-    (order.meta?.paymentMethod
-      ? `\n💳 Medio de pago: ${order.meta.paymentMethod}`
-      : "");
+  adminLines.push(`WhatsApp: ${order.from || "desconocido"}`);
 
-  await sendTextMessage(ADMIN_PHONE, msg);
+  if (order.total != null) {
+    adminLines.push(`Total: $${order.total}`);
+  }
+
+  if (order.meta?.paymentMethod) {
+    adminLines.push(`Medio de pago: ${order.meta.paymentMethod}`);
+  }
+
+  adminLines.push("");
+  adminLines.push("Elegí una acción para este pedido:");
+
+  await sendAdminOrderStatusButtons(
+    adminPhone,
+    adminLines.join("\n"),
+    order.id
+  );
 }

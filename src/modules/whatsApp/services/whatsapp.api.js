@@ -37,6 +37,41 @@ export async function sendTextMessage(to, text) {
   await callWhatsApp(payload);
 }
 
+export async function sendAdminOrderStatusButtons(to, text, orderId) {
+  const payload = {
+    messaging_product: "whatsapp",
+    to,
+    type: "interactive",
+    interactive: {
+      type: "button",
+      body: {
+        text,
+      },
+      action: {
+        buttons: [
+          {
+            type: "reply",
+            reply: {
+              id: `admin:in_delivery:${orderId}`,
+              title: "🚚 En camino",
+            },
+          },
+          {
+            type: "reply",
+            reply: {
+              id: `admin:delivered:${orderId}`,
+              title: "✅ Entregado",
+            },
+          },
+        ],
+      },
+    },
+  };
+
+  await callWhatsApp(payload);
+}
+
+
 // Link de pago (texto simple con URL)
 export async function sendOrderLink(to, preferenceUrl, orderId) {
   const refText = orderId ? ` para el pedido *${orderId}*` : "";
